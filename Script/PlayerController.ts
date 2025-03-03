@@ -23,7 +23,8 @@ export class PlayerController extends Component {
     gas = 100;      //for floating
     canJump = true; //state
     jump = false;   //pressing space
-    walking = 0;
+    right = false;
+    left = false;
 
     onLoad() {
         input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
@@ -36,11 +37,11 @@ export class PlayerController extends Component {
         switch (event.keyCode) {
             case KeyCode.KEY_A:
                 this.direction = -1;
-                this.walking++;
+                this.left = true;
                 break;
             case KeyCode.KEY_D:
                 this.direction = 1;
-                this.walking++;
+                this.right = true;
                 break;
             case KeyCode.SPACE:
                 this.jump = true;
@@ -53,10 +54,10 @@ export class PlayerController extends Component {
     onKeyUp(event: EventKeyboard) {
         switch (event.keyCode) {
             case KeyCode.KEY_A:
-                this.walking--;
+                this.left = false;
                 break;
             case KeyCode.KEY_D:
-                this.walking--;
+                this.right = false;
                 break;
             case KeyCode.SPACE:
                 this.jump = false;
@@ -75,7 +76,7 @@ export class PlayerController extends Component {
         }
 
         let velX = 0;
-        if (this.walking > 0) {
+        if (this.left || this.right) {
             velX = this.direction * this.speed;
         }
         if (this.jump) {
