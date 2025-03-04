@@ -1,4 +1,4 @@
-import { _decorator, BoxCollider2D, Component, instantiate, Node, Prefab, RigidBody2D, Size, TiledMap, Vec2, Vec3 } from 'cc';
+import { _decorator, BoxCollider2D, Component, instantiate, Node, Prefab, RigidBody2D, Size, TiledMap, Vec2, Vec3, Sprite } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('CreateCollider')
@@ -6,6 +6,8 @@ export class CreateCollider extends Component {
 
     @property({ type: Prefab })
     public colliderUI: Prefab = null;
+    @property({ type: Prefab })
+    public OneWayWall: Prefab = null;
 
     makeWallColliders() {
         let tiledMap = this.node.getComponent(TiledMap);
@@ -18,13 +20,6 @@ export class CreateCollider extends Component {
             for (let j = 0; j < layerSize.height; j++) {
                 let tile = layer.getTiledTileAt(i, j, true);
 
-                //show collider
-                let ui = instantiate(this.colliderUI);
-                this.node.addChild(ui);
-                ui.setPosition(tile.node.getPosition());
-                ui.translate(new Vec3(tileSize.width / 2, tileSize.height / 2, 0));
-                ui.scale.multiplyScalar(scale);
-
                 if (tile.grid != 0) {
                     let rigidBody = tile.node.addComponent(RigidBody2D);
                     rigidBody.type = 0;
@@ -34,6 +29,13 @@ export class CreateCollider extends Component {
                     collider.group = 2; //wall  //start from 1
                     collider.friction = 0;
                     collider.apply();
+
+                    //show collider
+                    let ui = instantiate(this.colliderUI);
+                    this.node.addChild(ui);
+                    ui.setPosition(tile.node.getPosition());
+                    ui.translate(new Vec3(tileSize.width / 2, tileSize.height / 2, 0));
+                    ui.scale.multiplyScalar(scale);
 
                     // make ground collider too
                     if (this.node.name == 'Underground' && j == 10 && i == 0) {
@@ -58,14 +60,44 @@ export class CreateCollider extends Component {
                 }
                 else {
                     tile.node.destroy();
-                    ui.destroy();
                 }
+            }
+        }
+    }
+
+    makeOneWayWall() {
+        let tiledMap = this.node.getComponent(TiledMap);
+        let tileSize = tiledMap.getTileSize();
+        let layer = tiledMap.getLayer('oneway');
+        let layerSize = layer.getLayerSize();
+        let scale = 1.01;
+
+        for (let i = 0; i < layerSize.width; i++) {
+            for (let j = 0; j < layerSize.height; j++) {
+                let tile = layer.getTiledTileAt(i, j, true);
+
+                if (tile.grid != 0) {
+                    let oneway = instantiate(this.OneWayWall);
+                    this.node.addChild(oneway);
+                    oneway.setPosition(tile.node.getPosition());
+                    //oneway.translate(new Vec3(tileSize.width / 2, tileSize.height / 2, 0));
+                    oneway.scale.multiplyScalar(scale);
+
+                    //show ui
+                    oneway.getComponent(Sprite).enabled = true;
+                    oneway.getComponentInChildren(Sprite).enabled = true;
+                }
+                else {
+                    tile.node.destroy();
+                }
+
             }
         }
     }
 
     onLoad() {
         this.makeWallColliders();
+        this.makeOneWayWall();
     }
 }
 

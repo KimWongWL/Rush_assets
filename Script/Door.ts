@@ -9,6 +9,7 @@ export class Door extends Component {
 
     wall: BoxCollider2D;
     door: BoxCollider2D;
+    timeout: number;
 
     onLoad() {
         this.door = this.node.getComponent(BoxCollider2D);
@@ -16,15 +17,16 @@ export class Door extends Component {
 
         if (this.door) {
             this.door.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
-            //this.door.on(Contact2DType.END_CONTACT, this.onEndContact, this);
-            //this.door.on(Contact2DType.POST_SOLVE, this.onEndContact, this);
-            //this.door.on(Contact2DType.PRE_SOLVE, this.onEndContact, this);
         }
+    }
 
-        //if (PhysicsSystem2D.instance) {
-        //    PhysicsSystem2D.instance.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
-        //    PhysicsSystem2D.instance.on(Contact2DType.END_CONTACT, this.onEndContact, this);
-        //}
+    update(deltaTime: number) {
+        if (this.timeout > 0) {
+            this.timeout -= deltaTime;
+            if (this.timeout <= 0) {
+                this.wall.enabled = true;
+            }
+        }
     }
 
     power(num, index) {
@@ -38,18 +40,19 @@ export class Door extends Component {
 
     onBeginContact(self: BoxCollider2D, object: BoxCollider2D, contact: IPhysics2DContact | null) {
         //collide to player //group = 2 to the power of index....
-        console.log(object.node.name + ' ' + object.group + ' ' + object.tag);
-        console.log(this.power(object.group, 2));
-        if (object.group == this.power(object.group,2) && object.tag == 1) {
+        //console.log(object.node.name + ' ' + object.group + ' ' + object.tag);
+        if (object.group == this.power(2, 2) && object.tag == 1) {
             console.log(object.node.name + ' in');
             this.wall.enabled = false;
+            this.timeout = 1;
         }
 
-        if (object.group == this.power(object.group, 6) && object.tag == 2) {
-
+        if (object.group == this.power(2, 6) && object.tag == 2 && this.timeout > 0) {
             console.log(object.node.name + ' out');
             this.wall.enabled = true;
+            this.timeout = 0;
         }
     }
 }
-
+
+

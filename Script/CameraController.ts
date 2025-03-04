@@ -1,5 +1,4 @@
 import { _decorator, Component, Node, v2, v3, math} from 'cc';
-import { PlayerController } from './PlayerController';
 const { ccclass, property } = _decorator;
 
 @ccclass('CameraController')
@@ -7,7 +6,6 @@ export class CameraController extends Component {
 
     @property({ type: Node })
     player = null;
-    playerSpeed = 0;
     center = v2(0, -200);
     follow = true; //follow the player?
     xMax = 169;
@@ -16,8 +14,6 @@ export class CameraController extends Component {
     yMin = -343;
      
     onLoad() {
-        this.playerSpeed = this.player.getComponent(PlayerController).speed;
-
         let tol = 50;
         this.xMax += tol;
         this.xMin += -tol;
