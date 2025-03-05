@@ -540,8 +540,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 24.163,
-      "y": -359.008,
+      "x": 33.984,
+      "y": -350.258,
       "z": 0
     },
     "_lrot": {
@@ -636,7 +636,7 @@
     "node": {
       "__id__": 14
     },
-    "_enabled": true,
+    "_enabled": false,
     "__prefab": null,
     "enabledContactListener": false,
     "bullet": false,
@@ -664,7 +664,7 @@
     "node": {
       "__id__": 14
     },
-    "_enabled": true,
+    "_enabled": false,
     "__prefab": null,
     "speed": 15,
     "jumpForce": 500,
@@ -678,7 +678,7 @@
     "node": {
       "__id__": 14
     },
-    "_enabled": true,
+    "_enabled": false,
     "__prefab": null,
     "tag": 0,
     "_group": 4,
@@ -702,7 +702,7 @@
     "node": {
       "__id__": 14
     },
-    "_enabled": true,
+    "_enabled": false,
     "__prefab": null,
     "tag": 1,
     "_group": 4,
@@ -730,7 +730,7 @@
     "node": {
       "__id__": 14
     },
-    "_enabled": true,
+    "_enabled": false,
     "__prefab": null,
     "tag": 2,
     "_group": 64,
@@ -2327,8 +2327,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -51.072,
-      "y": -359.616,
+      "x": -688.215,
+      "y": -198.187,
       "z": 0
     },
     "_lrot": {
@@ -2357,7 +2357,7 @@
   {
     "__type__": "cc.Node",
     "_name": "upper_body",
-    "_objFlags": 0,
+    "_objFlags": 512,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 79
@@ -2466,7 +2466,7 @@
   {
     "__type__": "cc.Node",
     "_name": "lower_body",
-    "_objFlags": 0,
+    "_objFlags": 512,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 79
@@ -2630,6 +2630,10 @@
     "player": {
       "__id__": 14
     },
+    "ui": {
+      "__uuid__": "078a94b3-bfbe-4cff-ada7-ff862c61ccae",
+      "__expectedType__": "cc.Prefab"
+    },
     "animEnd": false,
     "canShoot": false,
     "_id": "4bCjLlo9pJb5HE/QnwTZzi"
@@ -2646,7 +2650,7 @@
     "__prefab": null,
     "tag": 0,
     "_group": 8,
-    "_density": 20,
+    "_density": 1,
     "_sensor": false,
     "_friction": 0,
     "_restitution": 0,
@@ -2674,7 +2678,7 @@
     "__prefab": null,
     "tag": 0,
     "_group": 8,
-    "_density": 20,
+    "_density": 1,
     "_sensor": false,
     "_friction": 0,
     "_restitution": 0,
@@ -2700,7 +2704,7 @@
     "bullet": false,
     "awakeOnLoad": true,
     "_group": 1,
-    "_type": 2,
+    "_type": 1,
     "_allowSleep": true,
     "_gravityScale": 5,
     "_linearDamping": 0,
