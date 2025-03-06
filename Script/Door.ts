@@ -42,13 +42,13 @@ export class Door extends Component {
         //collide to player //group = 2 to the power of index....
         //console.log(object.node.name + ' ' + object.group + ' ' + object.tag);
         if (object.group == this.power(2, 2) && object.tag == 1) {
-            console.log(object.node.name + ' in');
+            //console.log(object.node.name + ' in');
             this.wall.enabled = false;
             this.timeout = 1;
         }
 
         if (object.group == this.power(2, 6) && object.tag == 2 && this.timeout > 0) {
-            console.log(object.node.name + ' out');
+            //console.log(object.node.name + ' out');
             this.wall.enabled = true;
             this.timeout = 0;
         }

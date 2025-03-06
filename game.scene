@@ -540,8 +540,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 33.984,
-      "y": -350.258,
+      "x": -835.562,
+      "y": -128.878,
       "z": 0
     },
     "_lrot": {
@@ -557,8 +557,8 @@
       "y": 1,
       "z": 1
     },
-    "_mobility": 0,
-    "_layer": 33554432,
+    "_mobility": 2,
+    "_layer": 1073741824,
     "_euler": {
       "__type__": "cc.Vec3",
       "x": 0,
@@ -636,7 +636,7 @@
     "node": {
       "__id__": 14
     },
-    "_enabled": false,
+    "_enabled": true,
     "__prefab": null,
     "enabledContactListener": false,
     "bullet": false,
@@ -664,7 +664,7 @@
     "node": {
       "__id__": 14
     },
-    "_enabled": false,
+    "_enabled": true,
     "__prefab": null,
     "speed": 15,
     "jumpForce": 500,
@@ -678,7 +678,7 @@
     "node": {
       "__id__": 14
     },
-    "_enabled": false,
+    "_enabled": true,
     "__prefab": null,
     "tag": 0,
     "_group": 4,
@@ -702,7 +702,7 @@
     "node": {
       "__id__": 14
     },
-    "_enabled": false,
+    "_enabled": true,
     "__prefab": null,
     "tag": 1,
     "_group": 4,
@@ -730,7 +730,7 @@
     "node": {
       "__id__": 14
     },
-    "_enabled": false,
+    "_enabled": true,
     "__prefab": null,
     "tag": 2,
     "_group": 64,
@@ -2327,8 +2327,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -688.215,
-      "y": -198.187,
+      "x": -767.143,
+      "y": -50,
       "z": 0
     },
     "_lrot": {
@@ -2627,6 +2627,8 @@
     },
     "_enabled": true,
     "__prefab": null,
+    "animEnd": false,
+    "canShoot": false,
     "player": {
       "__id__": 14
     },
@@ -2634,8 +2636,6 @@
       "__uuid__": "078a94b3-bfbe-4cff-ada7-ff862c61ccae",
       "__expectedType__": "cc.Prefab"
     },
-    "animEnd": false,
-    "canShoot": false,
     "_id": "4bCjLlo9pJb5HE/QnwTZzi"
   },
   {
