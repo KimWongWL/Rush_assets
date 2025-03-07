@@ -2,95 +2,119 @@ import { _decorator, Animation, Component, Node, EPhysics2DDrawFlags, Vec3, Phys
 import { PlayerController } from './PlayerController';
 const { ccclass, property } = _decorator;
 
+
+export const enum State {
+    Idle = 0,
+    Petrol = 1,
+    Attack = 2,
+}
+
 @ccclass('Shooter')
 export class Shooter extends Component {
 
-    @property
-    public animEnd: boolean = false;
     @property
     public canShoot: boolean = false;
     @property({ type: Node })
     public player: Node = null;
     @property({ type: Prefab })
     public ui: Prefab = null;
-    bullet: Node = null;
-    animation:Animation;
-    cooldown = 2;
-    cd = 2;
-    rayCd = 0.5;
-    rayCooldown = 0.5;
+    @property
+    fireRange: number = 100;
 
-    range = 500;
-    x = this.range;
-    y = this.range;
-    xDir = -1;
-    yDir = 0;
-    path = 0;
-    ownCenterOff: Vec3;
-    playerCenterOff: Vec3;
-    lastPlayerPos: Vec3;
+    animation: Animation;
+    bullet: Node;
+    cd = 1;
+    cooldown = this.cd;
+    rayCd = 0.5;
+    rayCooldown = this.rayCd;
+
+    ownCenterOff: Vec3 = Vec3.ZERO;
+    playerCenterOff: Vec3 = Vec3.ZERO;
+    bulletFireOff: Vec3 = Vec3.ZERO;
+    lastPlayerPos: Vec3 = Vec3.ZERO;
+    state = State.Idle;
+
+    //range = 500;
+    //x = this.range;
+    //y = this.range;
+    //xDir = -1;
+    //yDir = 0;
+    //path = 0;
 
     onLoad() {
         this.animation = this.node.getComponent(Animation);
+        this.bullet = this.node.getChildByName('Bullet');
 
         this.ownCenterOff = v3(0, this.node.getComponent(UITransform).contentSize.y / 2, 0);
-        this.playerCenterOff = v3(0, this.player.getComponent(UITransform).contentSize.y / 2, 0);
-        return;
+        this.bulletFireOff = v3(this.bullet.getComponent(UITransform).contentSize.x / 2, 0, 0);
+        this.animation.on(Animation.EventType.FINISHED, this.onAnimationFinish, this)
+        
+        //this.playerCenterOff = v3(0, this.player.getComponent(UITransform).contentSize.y / 2, 0);
 
-        PhysicsSystem2D.instance.enable = true;
-        PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.Shape;
+        //PhysicsSystem2D.instance.enable = true;
+        //PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.Shape;
 
-        let targetPos = this.player.getWorldPosition().subtract(v3(10,10,0)) ;
-        let oriPos = this.node.getWorldPosition();
+        //let targetPos = this.player.getWorldPosition().subtract(v3(10,10,0)) ;
+        //let oriPos = this.node.getWorldPosition();
 
-        let collider = this.player.addComponent(BoxCollider2D);
-        collider.offset = Vec2.ZERO;
-        collider.group = 4; //wall  //start from 1
-        collider.size = new Size(100,100);  
-        collider.friction = 0;
-        collider.apply();
+        //let collider = this.player.addComponent(BoxCollider2D);
+        //collider.offset = Vec2.ZERO;
+        //collider.group = 4; //wall  //start from 1
+        //collider.size = new Size(100,100);  
+        //collider.friction = 0;
+        //collider.apply();
 
-        {
-            let ui = instantiate(this.ui);
-            this.node.addChild(ui);
-            ui.setWorldPosition(v3(oriPos.x, oriPos.y, 0));
-            ui.getComponent(Sprite).color = math.color(0, 0, 255, 255);
-        }
-        {
-            let ui = instantiate(this.ui);
-            this.node.addChild(ui);
-            ui.setWorldPosition(v3(targetPos.x, targetPos.y, 0));
-            ui.getComponent(Sprite).color = math.color(255,0,0,255);
-        }
+        //{
+        //    let ui = instantiate(this.ui);
+        //    this.node.addChild(ui);
+        //    ui.setWorldPosition(v3(oriPos.x, oriPos.y, 0));
+        //    ui.getComponent(Sprite).color = math.color(0, 0, 255, 255);
+        //}
+        //{
+        //    let ui = instantiate(this.ui);
+        //    this.node.addChild(ui);
+        //    ui.setWorldPosition(v3(targetPos.x, targetPos.y, 0));
+        //    ui.getComponent(Sprite).color = math.color(255,0,0,255);
+        //}
 
-        let results = PhysicsSystem2D.instance.raycast(oriPos, targetPos, ERaycast2DType.All);
-        if (results) {
-            //console.log(results.length);
-            for (let i = 0; i < results.length; i++) {
-                let result = results[i];
-                let collider = result.collider;
-                let point = result.point;
+        //let results = PhysicsSystem2D.instance.raycast(oriPos, targetPos, ERaycast2DType.All);
+        //if (results) {
+        //    //console.log(results.length);
+        //    for (let i = 0; i < results.length; i++) {
+        //        let result = results[i];
+        //        let collider = result.collider;
+        //        let point = result.point;
 
-                console.log('ray hit ' + collider.node.name + ' from ' + collider.node.name + ' at ' + point);
+        //        console.log('ray hit ' + collider.node.name + ' from ' + collider.node.name + ' at ' + point);
 
-                let ui = instantiate(this.ui);
-                this.node.addChild(ui);
-                ui.setWorldPosition(v3(point.x , point.y , 0));
-            }
-        }
+        //        let ui = instantiate(this.ui);
+        //        this.node.addChild(ui);
+        //        ui.setWorldPosition(v3(point.x , point.y , 0));
+        //    }
+        //}
 
-        const colliderList = PhysicsSystem2D.instance.testAABB(this.player.getComponent(BoxCollider2D).worldAABB);
-        console.log(colliderList);
-        colliderList.forEach(collider => {
-            console.log('ray hit ' + collider.node.name + ' from ' + collider.node.name );
-        });
+        //const colliderList = PhysicsSystem2D.instance.testAABB(this.player.getComponent(BoxCollider2D).worldAABB);
+        //console.log(colliderList);
+        //colliderList.forEach(collider => {
+        //    console.log('ray hit ' + collider.node.name + ' from ' + collider.node.name );
+        //});
     }
 
     detectedPlayer() {
         let targetPos = this.player.getWorldPosition().add(this.playerCenterOff)
         let oriPos = this.node.getWorldPosition().add(this.ownCenterOff);
 
-        let results = null;
+        //cal distance
+        let x = (this.player.position.x + this.playerCenterOff.x) - (this.node.position.x + this.ownCenterOff.x);
+        let y = (this.player.position.y + this.playerCenterOff.y) - (this.node.position.y + this.ownCenterOff.y);
+        y *= 1.5;   //prevent player out of camera
+        let dis = Math.sqrt(x * x + y * y);
+        //check if player out of fire range
+        if (dis > this.fireRange) {
+            return false;
+        }
+
+        let results = PhysicsSystem2D.instance.raycast(oriPos, targetPos, ERaycast2DType.All);
         if (results) {
             //console.log(results.length);
             for (let i = 0; i < results.length; i++) {
@@ -147,6 +171,17 @@ export class Shooter extends Component {
         //}
     }
 
+    deactiveBullet() {
+        if (this.bullet.active == true) {
+            this.bullet.active = false;
+            console.log('bye');
+        }
+    }
+
+    onAnimationFinish() {
+            this.cooldown = this.cd;
+    }
+
     update(deltaTime: number) {
 
         if (this.rayCooldown > 0) {
@@ -160,21 +195,29 @@ export class Shooter extends Component {
         if (this.rayCooldown <= 0) {
             this.rayCooldown = this.rayCd;
             if (this.detectedPlayer()) {
+                console.log('player dectected');
                 this.lastPlayerPos = this.player.position;
-                if (this.cooldown <= 0) {
+                if (this.cooldown <= 0 && !this.bullet.active) {
+                    console.log('play animation');
                     this.animation.play('shoot');
+                    this.bullet.active = true;
+                    this.bullet.setPosition(0,38,0);
                 }
             }
         }
 
         if (this.canShoot) {
+            console.log('shoot');
+            let y = (this.player.getWorldPosition().y - this.bullet.getWorldPosition().y);
+            let x = (this.player.getWorldPosition().x - this.bullet.getWorldPosition().x);
+            let angle = Math.atan2(y, x) / Math.PI * 180;
+            this.bullet.angle = angle;
+
+            this.schedule(function () {
+                this.deactiveBullet();
+                console.log('yo'); },1);
 
             this.canShoot = false;
-        }
-
-        if (this.animEnd) {
-            this.cooldown = this.cd;
-            this.animEnd = false;
         }
     }
 }

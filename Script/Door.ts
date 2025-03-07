@@ -43,13 +43,15 @@ export class Door extends Component {
         //console.log(object.node.name + ' ' + object.group + ' ' + object.tag);
         if (object.group == this.power(2, 2) && object.tag == 1) {
             //console.log(object.node.name + ' in');
-            this.wall.enabled = false;
+            //this.wall.enabled = false;
+            this.wall.group = this.power(2,4);
             this.timeout = 1;
         }
 
         if (object.group == this.power(2, 6) && object.tag == 2 && this.timeout > 0) {
             //console.log(object.node.name + ' out');
-            this.wall.enabled = true;
+            //this.wall.enabled = true;
+            this.wall.group = this.power(2, 1);
             this.timeout = 0;
         }
     }
