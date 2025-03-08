@@ -1,5 +1,5 @@
 import { _decorator, Animation, Component, Node, EPhysics2DDrawFlags, Vec3, PhysicsSystem2D, ERaycast2DType, v3, UITransform, Prefab, instantiate, Vec2, Sprite, math, BoxCollider2D, Size } from 'cc';
-import { PlayerController } from './PlayerController';
+import { Bullet } from './Bullet';
 const { ccclass, property } = _decorator;
 
 
@@ -23,10 +23,12 @@ export class Shooter extends Component {
 
     animation: Animation;
     bullet: Node;
-    cd = 1;
+    bulletScript: Bullet;
+    cd = 2;
     cooldown = this.cd;
     rayCd = 0.5;
     rayCooldown = this.rayCd;
+    animEnd = true;
 
     ownCenterOff: Vec3 = Vec3.ZERO;
     playerCenterOff: Vec3 = Vec3.ZERO;
@@ -44,9 +46,9 @@ export class Shooter extends Component {
     onLoad() {
         this.animation = this.node.getComponent(Animation);
         this.bullet = this.node.getChildByName('Bullet');
+        this.bulletScript = this.bullet.getComponent(Bullet);
 
         this.ownCenterOff = v3(0, this.node.getComponent(UITransform).contentSize.y / 2, 0);
-        this.bulletFireOff = v3(this.bullet.getComponent(UITransform).contentSize.x / 2, 0, 0);
         this.animation.on(Animation.EventType.FINISHED, this.onAnimationFinish, this)
         
         //this.playerCenterOff = v3(0, this.player.getComponent(UITransform).contentSize.y / 2, 0);
@@ -171,15 +173,9 @@ export class Shooter extends Component {
         //}
     }
 
-    deactiveBullet() {
-        if (this.bullet.active == true) {
-            this.bullet.active = false;
-            console.log('bye');
-        }
-    }
-
     onAnimationFinish() {
-            this.cooldown = this.cd;
+        this.animEnd = true;
+        this.cooldown = this.cd;
     }
 
     update(deltaTime: number) {
@@ -195,31 +191,42 @@ export class Shooter extends Component {
         if (this.rayCooldown <= 0) {
             this.rayCooldown = this.rayCd;
             if (this.detectedPlayer()) {
-                console.log('player dectected');
+                //console.log('player dectected');
                 this.lastPlayerPos = this.player.position;
-                if (this.cooldown <= 0 && !this.bullet.active) {
-                    console.log('play animation');
+                if (this.cooldown <= 0 && this.animEnd) {
+                    this.animEnd = false;
                     this.animation.play('shoot');
                     this.bullet.active = true;
-                    this.bullet.setPosition(0,38,0);
+                    this.bulletScript.playerPosn = this.player.getWorldPosition();
                 }
             }
         }
 
         if (this.canShoot) {
-            console.log('shoot');
-            let y = (this.player.getWorldPosition().y - this.bullet.getWorldPosition().y);
-            let x = (this.player.getWorldPosition().x - this.bullet.getWorldPosition().x);
-            let angle = Math.atan2(y, x) / Math.PI * 180;
-            this.bullet.angle = angle;
-
-            this.schedule(function () {
-                this.deactiveBullet();
-                console.log('yo'); },1);
-
             this.canShoot = false;
+            this.bulletScript.shoot();
         }
+
+        //if (this.canShoot) {
+        //    console.log('shoot');
+        //    let y = (this.player.getWorldPosition().y - this.bullet.getWorldPosition().y);
+        //    let x = (this.player.getWorldPosition().x - this.bullet.getWorldPosition().x);
+        //    let angle = Math.atan2(y, x) / Math.PI * 180;
+        //    this.bullet.angle = angle;
+        //    this.canShoot = false;
+        //}
     }
+
+    //lateUpdate(deltaTime: number) {
+    //    if (this.canShoot) {
+    //        console.log('shoot');
+    //        let y = (this.player.getWorldPosition().y - this.bullet.getWorldPosition().y);
+    //        let x = (this.player.getWorldPosition().x - this.bullet.getWorldPosition().x);
+    //        let angle = Math.atan2(y, x) / Math.PI * 180;
+    //        this.bullet.angle = angle;
+    //        this.canShoot = false;
+    //    }
+    //}
 }
 
 

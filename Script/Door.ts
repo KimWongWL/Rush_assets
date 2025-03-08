@@ -20,13 +20,16 @@ export class Door extends Component {
         }
     }
 
-    update(deltaTime: number) {
-        if (this.timeout > 0) {
-            this.timeout -= deltaTime;
-            if (this.timeout <= 0) {
-                this.wall.enabled = true;
-            }
-        }
+    disalbeForPlayer() {
+        //set to door
+        this.wall.group = this.power(2, 4);
+        this.timeout = 1;
+    }
+
+    enableForPlayerNMonster() {
+        //set to wall
+        this.wall.group = this.power(2, 1);
+        this.timeout = 0;
     }
 
     power(num, index) {
@@ -38,21 +41,26 @@ export class Door extends Component {
         }
     }
 
-    onBeginContact(self: BoxCollider2D, object: BoxCollider2D, contact: IPhysics2DContact | null) {
-        //collide to player //group = 2 to the power of index....
+    update(deltaTime: number) {
+        if (this.timeout > 0) {
+            this.timeout -= deltaTime;
+            if (this.timeout <= 0) {
+                this.enableForPlayerNMonster();
+            }
+        }
+    }
+
+    onBeginContact(self, object, contact: IPhysics2DContact | null) {
+        //collide to head //group = 2 to the power of index....
         //console.log(object.node.name + ' ' + object.group + ' ' + object.tag);
-        if (object.group == this.power(2, 2) && object.tag == 1) {
-            //console.log(object.node.name + ' in');
-            //this.wall.enabled = false;
-            this.wall.group = this.power(2,4);
-            this.timeout = 1;
+        if (object.group == this.power(2, 5) ) {
+            this.disalbeForPlayer();
         }
 
-        if (object.group == this.power(2, 6) && object.tag == 2 && this.timeout > 0) {
+        if (object.group == this.power(2, 6) && this.timeout > 0) {
             //console.log(object.node.name + ' out');
             //this.wall.enabled = true;
-            this.wall.group = this.power(2, 1);
-            this.timeout = 0;
+            this.enableForPlayerNMonster();
         }
     }
 }
