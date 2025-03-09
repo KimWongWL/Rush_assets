@@ -1,4 +1,5 @@
 import { _decorator, Component, Node, IPhysics2DContact, Contact2DType, Vec2, UITransform, RigidBody2D, v2, Vec3, CircleCollider2D, BoxCollider2D } from 'cc';
+import { PlayerController } from './PlayerController';
 const { ccclass, property } = _decorator;
 
 @ccclass('Bullet')
@@ -12,7 +13,7 @@ export class Bullet extends Component {
     fired = false;
     firePosnOff = Vec2.ZERO;
     rig: RigidBody2D;
-    speed = 10;
+    speed = 30;
 
     onLoad() {
 
@@ -35,10 +36,19 @@ export class Bullet extends Component {
     }
 
     onBeginContact(self, object, contact: IPhysics2DContact | null) {
+        if (!this.node.active) {
+            return;
+        }
         //wall
-        console.log('Collision detected!', object.group);
+        // console.log('Collision detected!', object.group);
         if (object.group == this.power(2, 1)) {
-            console.log('hit wall');
+            //console.log('hit wall');
+            this.node.active = false;
+        }
+        //player
+        if (object.group == this.power(2, 2)) {
+            //console.log('hit player');
+            object.node.getComponent(PlayerController).hurt();
             this.node.active = false;
         }
     }
@@ -52,7 +62,7 @@ export class Bullet extends Component {
 
     public shoot() {
         this.node.active = true;
-        console.log('fire');
+        //console.log('fire');
         this.fired = true;
         let y = (this.playerPosn.y - this.node.getWorldPosition().y);
         let x = (this.playerPosn.x - this.node.getWorldPosition().x);

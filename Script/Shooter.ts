@@ -49,9 +49,9 @@ export class Shooter extends Component {
         this.bulletScript = this.bullet.getComponent(Bullet);
 
         this.ownCenterOff = v3(0, this.node.getComponent(UITransform).contentSize.y / 2, 0);
-        this.animation.on(Animation.EventType.FINISHED, this.onAnimationFinish, this)
+        this.animation.on(Animation.EventType.FINISHED, this.onAnimationFinish, this);
         
-        //this.playerCenterOff = v3(0, this.player.getComponent(UITransform).contentSize.y / 2, 0);
+        this.playerCenterOff = v3(0, this.player.getComponent(UITransform).contentSize.y / 2, 0);
 
         //PhysicsSystem2D.instance.enable = true;
         //PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.Shape;
@@ -116,7 +116,7 @@ export class Shooter extends Component {
             return false;
         }
 
-        let results = PhysicsSystem2D.instance.raycast(oriPos, targetPos, ERaycast2DType.All);
+        let results = PhysicsSystem2D.instance.raycast(oriPos, targetPos, ERaycast2DType.Closest);
         if (results) {
             //console.log(results.length);
             for (let i = 0; i < results.length; i++) {
@@ -202,10 +202,10 @@ export class Shooter extends Component {
             }
         }
 
-        if (this.canShoot) {
-            this.canShoot = false;
-            this.bulletScript.shoot();
-        }
+        //if (this.canShoot) {
+        //    this.canShoot = false;
+        //    this.bulletScript.shoot();
+        //}
 
         //if (this.canShoot) {
         //    console.log('shoot');
@@ -217,16 +217,12 @@ export class Shooter extends Component {
         //}
     }
 
-    //lateUpdate(deltaTime: number) {
-    //    if (this.canShoot) {
-    //        console.log('shoot');
-    //        let y = (this.player.getWorldPosition().y - this.bullet.getWorldPosition().y);
-    //        let x = (this.player.getWorldPosition().x - this.bullet.getWorldPosition().x);
-    //        let angle = Math.atan2(y, x) / Math.PI * 180;
-    //        this.bullet.angle = angle;
-    //        this.canShoot = false;
-    //    }
-    //}
+    lateUpdate(deltaTime: number) {
+        if(this.canShoot) {
+            this.canShoot = false;
+            this.bulletScript.shoot();
+        }
+    }
 }
 
 

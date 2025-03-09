@@ -9,6 +9,11 @@ export class GameManager extends Component {
         PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.Shape;
     }
 
+    public gameOver() {
+        //do somthing
+        console.log('gameover');
+    }
+
     start() {
     }
 
