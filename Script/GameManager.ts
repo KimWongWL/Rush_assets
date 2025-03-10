@@ -6,7 +6,7 @@ export class GameManager extends Component {
 
     onLoad() {
         PhysicsSystem2D.instance.enable = true;
-        PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.Shape;
+        //PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.Shape;
     }
 
     public gameOver() {

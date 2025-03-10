@@ -43,21 +43,27 @@ export class Bullet extends Component {
         // console.log('Collision detected!', object.group);
         if (object.group == this.power(2, 1)) {
             //console.log('hit wall');
-            this.node.active = false;
+            this.selfDestory();
         }
         //player
         if (object.group == this.power(2, 2)) {
             //console.log('hit player');
             object.node.getComponent(PlayerController).hurt();
-            this.node.active = false;
+            this.selfDestory();
         }
+    }
+
+    selfDestory() {
+        this.node.active = false;
+        this.rig.enabledContactListener = false;
     }
 
     onEnable() {
         this.timer = 0;
         this.fired = false;
         this.node.setPosition(0, 38, 0);
-        this.rig.linearVelocity = v2(0,0);
+        this.rig.linearVelocity = v2(0, 0);
+        this.rig.enabledContactListener = true;
     }
 
     public shoot() {

@@ -1,5 +1,6 @@
-import { _decorator, Component, Input, input, EventKeyboard, KeyCode, v2, v3, RigidBody2D, find, Animation, BoxCollider2D, CircleCollider2D, PhysicsSystem2D, Size, ERaycast2DType } from 'cc';
+import { _decorator, Component, Input, input, EventKeyboard, KeyCode, v2, v3, RigidBody2D, find, Animation, BoxCollider2D, CircleCollider2D, PhysicsSystem2D, Size, ERaycast2DType, Prefab, instantiate, Sprite, math, UITransform } from 'cc';
 import { GameManager } from './GameManager';
+import { Door } from './Door';
 const { ccclass, property } = _decorator;
 
 export const enum  State {
@@ -12,6 +13,8 @@ export const enum  State {
 @ccclass('PlayerController')
 export class PlayerController extends Component {
 
+    @property({ type: Prefab })
+    public ui: Prefab = null;
     @property
     public speed = 20;
     @property
@@ -22,6 +25,8 @@ export class PlayerController extends Component {
     anim: Animation = null;
     boxCollider: BoxCollider2D = null;
     circleCollider: CircleCollider2D = null;
+    headCollider: BoxCollider2D = null;
+    footCollider: BoxCollider2D = null;
 
     //move
     direction = 1;
@@ -29,8 +34,9 @@ export class PlayerController extends Component {
     jump = false;   //pressing space
     right = false;
     left = false;
-    rayCastCD = 0.5;
+    rayCastCD = 0.3;
     rayCastCoolDown = this.rayCastCD;
+    playerWidth = 28;
 
     //for roll
     rollTimer = 0;
@@ -43,7 +49,7 @@ export class PlayerController extends Component {
 
     //gas
     gas = 100;      //for floating
-    gasRegen = 20;
+    gasRegen = 30;
     gasFillReservation = 1;
 
     //hp
@@ -55,18 +61,41 @@ export class PlayerController extends Component {
         input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
 
         this.rig = this.node.getComponent(RigidBody2D);
-        //this.anim = this.node.getComponent(Animation);
-        //this.anim.on(Animation.EventType.FINISHED, this.onAnimationFinish, this);
-        //let colliders = this.node.getComponents(BoxCollider2D);
-        //colliders.forEach(function (collider: BoxCollider2D) {
-        //    console.log(collider.group + ' box'); 
-        //    if (collider.group == 4 /*player*/) {
-        //        this.boxCollider = collider;
-        //    }
-        //});
-        this.boxCollider = this.node.getComponent(BoxCollider2D);
         this.circleCollider = this.node.getComponent(CircleCollider2D);
         this.oriGrav = this.rig.gravityScale;
+        this.playerWidth = this.node.getComponent(UITransform).contentSize.x;
+
+        //get the box collider
+        {
+            let colliders = this.node.getComponents(BoxCollider2D);
+            for (let i = 0; i < colliders.length; i++) {
+                if (colliders[i].group == this.power(2, 2)) {
+                    this.boxCollider = colliders[i];
+                }
+                if (colliders[i].group == this.power(2,5)) {
+                    this.headCollider = colliders[i];
+                }
+                if (colliders[i].group == this.power(2, 6)) {
+                    this.footCollider = colliders[i];
+                }
+            }
+
+            // why i need to do this much just for a drop of blood
+            //colliders.forEach(function (col) {
+            //    //console.log(i + ' g ' + col.group)
+            //    if (col.group == targetGroup) {
+            //        index = i;
+            //        //console.log('find it' + i)
+            //    }
+            //    i++;
+            //});
+            //if (index != 0) {
+            //    console.log(index)
+            //    this.headCollider = colliders[index];
+            //    console.log(this.headCollider);
+            //    this.headCollider.tag = 0;
+            //}
+        }
 
         this.initial();
     }
@@ -93,7 +122,7 @@ export class PlayerController extends Component {
                 this.jump = true;
                 break;
             case KeyCode.KEY_S:
-                
+                this.fall();
                 break;
             case KeyCode.SHIFT_LEFT:
                 if (this.rollCoolDown > 0) {
@@ -104,20 +133,6 @@ export class PlayerController extends Component {
             default:
                 break;
         }
-    }
-
-    checkOnGround() {
-        let startPosn = this.node.getWorldPosition();
-        let endPosn = startPosn.subtract(v3(0, 100, 0));
-
-        let results = PhysicsSystem2D.instance.raycast(startPosn, endPosn, ERaycast2DType.All);
-        console.log(results);
-        if (results && results.length > 0) {
-            console.log(results);
-            //collided
-            return true;
-        }
-        return false;
     }
 
     onKeyUp(event: EventKeyboard) {
@@ -133,9 +148,106 @@ export class PlayerController extends Component {
                 break;
             case KeyCode.KEY_S:
                 break;
+            case KeyCode.SHIFT_LEFT:
+                break;
             default:
                 break;
         }
+    }
+
+    checkOnGround() {
+        let startPosn = this.node.getWorldPosition();
+        let endPosn = this.node.getWorldPosition().clone().subtract(v3(0, 10, 0));
+        //{
+        //    let ui = instantiate(this.ui);
+        //    this.node.addChild(ui);
+        //    ui.setWorldPosition(startPosn);
+        //    ui.getComponent(Sprite).color = math.color(0, 0, 255, 255);
+        //}
+        //{
+        //    let ui = instantiate(this.ui);
+        //    this.node.addChild(ui);
+        //    ui.setWorldPosition(endPosn);
+        //    ui.getComponent(Sprite).color = math.color(255, 0, 0, 255);
+        //}
+
+        let results = PhysicsSystem2D.instance.raycast(startPosn, endPosn, ERaycast2DType.Any);
+        //console.log('check ground' + results.length);
+        if (results && results.length > 0) {
+            //for (let i = 0; i < results.length; i++) {
+            //    let result = results[i];
+            //    let collider = result.collider;
+            //    console.log(collider.node.name);
+            //}
+            //collided
+            return true;
+        }
+        return false;
+    }
+
+    fall() {
+        this.headCollider.tag = 0;  // will set back when fall end
+        this.footCollider.tag = 0;  // will set back when fall end
+        let canFall = false;
+
+        for (let j = 0; j < 3; j++) {
+            //find oneway wall
+            let startPosn = this.node.getWorldPosition().clone().add(v3(this.playerWidth / 1.9 * (j - 1), 4, 0));
+            let endPosn = this.node.getWorldPosition().clone().add(v3(this.playerWidth / 1.9 * (j - 1), -10, 0));
+
+            {
+                let ui = instantiate(this.ui);
+                this.node.addChild(ui);
+                ui.setWorldPosition(startPosn);
+                ui.getComponent(Sprite).color = math.color(0, 0, 255, 255);
+                ui.scale.multiplyScalar(0.2);
+            }
+            {
+                let ui = instantiate(this.ui);
+                this.node.addChild(ui);
+                ui.setWorldPosition(endPosn);
+                ui.getComponent(Sprite).color = math.color(255, 0, 0, 255);
+                ui.scale.multiplyScalar(0.2);
+            }
+
+            let results = PhysicsSystem2D.instance.raycast(startPosn, endPosn, ERaycast2DType.All);
+            //console.log('check ground' + results.length);
+            if (results) {
+                let canFall = false;
+                for (let i = 0; i < results.length; i++) {
+                    let result = results[i];
+                    let collider = result.collider;
+
+                    //one way wall
+                    let name: string = collider.node.name;
+                    if (name == 'Wall') {
+                        canFall = true;
+                        console.log(collider.node.name);
+                        collider.node.getParent().getComponent(Door).disalbeForPlayer();
+                    }
+                    //else if (name.includes('OneWay')) {
+                    //    canFall = true;
+                    //    console.log(collider.node.name);
+                    //    collider.node.getComponent(Door).disalbeForPlayer();
+                    //}
+
+                    //if (collider.node.name == 'Wall') {
+                    //    canFall = true;
+                    //    console.log(collider.node.getParent().name);
+                    //    collider.node.getParent().getComponent(Door).disalbeForPlayer();
+                    //}
+                }
+                if (canFall) {
+                    this.scheduleOnce(this.resetHeadCollider, 0.25);
+                }
+            }
+
+        }
+    }
+
+    public resetHeadCollider() {
+        this.headCollider.tag = 1;
+        this.footCollider.tag = 1;
     }
 
     update(deltaTime: number) {
@@ -162,9 +274,7 @@ export class PlayerController extends Component {
         }
         if (this.rayCastCoolDown <= 0) {
             this.rayCastCoolDown = this.rayCastCD;
-            if (this.checkOnGround()) {
-                this.canJump = true;
-            }
+            this.canJump = this.checkOnGround();
         }
 
         switch (this.state) {
@@ -179,17 +289,23 @@ export class PlayerController extends Component {
                 }
                 //jump
                 if (this.jump) {
-                    let gasBurn = this.gasRegen * 5 * deltaTime;
+                    console.log(this.canJump);
+                    if (this.canJump) {
+                        this.canJump = false;
+                        //if only player still on ground, jump
+                        if (this.checkOnGround()) {
+                            this.rig.applyForce(v2(0, this.jumpForce), v2(0, 0), true);
+                            break;
+                        }
+                    }
+
+                    let gasBurn = this.gasRegen * 3 * deltaTime;
                     if (!this.canJump && this.gas > gasBurn) {
                         this.gas -= gasBurn;
                         this.gasFillReservation = 1;
                         if (this.rig.linearVelocity.y < 8) {
                             this.rig.applyForce(v2(0, this.jumpForce / 10), v2(0, 0), true);
                         }
-                    }
-                    else if (this.canJump){
-                        this.canJump = false;
-                        this.rig.applyForce(v2(0, this.jumpForce), v2(0, 0), true);
                     }
                 }
                 this.rig.linearVelocity = v2(velX, this.rig.linearVelocity.y);
@@ -201,11 +317,6 @@ export class PlayerController extends Component {
                 if (this.rollTimer >= this.rollDuration) {
                     this.endRoll();
                 }
-                break;
-            case State.Normal:
-                this.jump = false;
-                break;
-            case State.Normal:
                 break;
             default:
                 break;
@@ -231,11 +342,11 @@ export class PlayerController extends Component {
             this.boxCollider.size = new Size(this.boxCollider.size.x, this.boxCollider.size.y / 2);
             this.boxCollider.offset.multiplyScalar(0.5);
         }
-        {
-            this.circleCollider.group = this.power(2, 8);
-            this.circleCollider.radius /= 2;
-            this.circleCollider.offset.multiplyScalar(0.5);
-        }
+        //{
+        //    this.circleCollider.group = this.power(2, 8);
+        //    this.circleCollider.radius /= 2;
+        //    this.circleCollider.offset.multiplyScalar(0.5);
+        //}
         this.state = State.Rolling;
         this.rig.gravityScale = 0;
         this.rollCoolDown = this.rollDuration * 2;
@@ -251,11 +362,11 @@ export class PlayerController extends Component {
             this.boxCollider.offset.multiplyScalar(2);
             this.boxCollider.group = this.power(2, 2);
         }
-        {
-            this.circleCollider.radius *= 2;
-            this.circleCollider.offset.multiplyScalar(2);
-            this.circleCollider.group = this.power(2, 2);
-        }
+        //{
+        //    this.circleCollider.radius *= 2;
+        //    this.circleCollider.offset.multiplyScalar(2);
+        //    this.circleCollider.group = this.power(2, 2);
+        //}
         this.rig.gravityScale = this.oriGrav;
         this.state = State.Normal;
         this.rollTimer = 0;

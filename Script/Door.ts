@@ -20,7 +20,7 @@ export class Door extends Component {
         }
     }
 
-    disalbeForPlayer() {
+    public disalbeForPlayer() {
         //set to door
         this.wall.group = this.power(2, 4);
         this.timeout = 1;
@@ -53,14 +53,24 @@ export class Door extends Component {
     onBeginContact(self, object, contact: IPhysics2DContact | null) {
         //collide to head //group = 2 to the power of index....
         //console.log(object.node.name + ' ' + object.group + ' ' + object.tag);
-        if (object.group == this.power(2, 5) ) {
-            this.disalbeForPlayer();
+        if (object.group == this.power(2, 5)) {
+            if (object.tag == 0) {
+                //falling state
+                this.enableForPlayerNMonster();
+                //object.tag = 2; 
+            }
+            else if (object.tag == 1) {
+                this.disalbeForPlayer();
+            }
         }
 
+        //Foot
         if (object.group == this.power(2, 6) && this.timeout > 0) {
             //console.log(object.node.name + ' out');
             //this.wall.enabled = true;
-            this.enableForPlayerNMonster();
+            if (object.tag == 1) {
+                this.enableForPlayerNMonster();
+            }
         }
     }
 }
