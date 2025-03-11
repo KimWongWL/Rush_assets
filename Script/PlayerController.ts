@@ -1,4 +1,4 @@
-import { _decorator, Component, Input, input, EventKeyboard, KeyCode, v2, v3, RigidBody2D, find, Animation, BoxCollider2D, CircleCollider2D, PhysicsSystem2D, Size, ERaycast2DType, Prefab, instantiate, Sprite, math, UITransform } from 'cc';
+import { _decorator, Component, Input, input, EventKeyboard, KeyCode, v2, v3, RigidBody2D, find, Animation, BoxCollider2D, CircleCollider2D, PhysicsSystem2D, Size, ERaycast2DType, Prefab, ParticleSystem2D, Node, math, UITransform } from 'cc';
 import { GameManager } from './GameManager';
 import { Door } from './Door';
 const { ccclass, property } = _decorator;
@@ -27,6 +27,11 @@ export class PlayerController extends Component {
     circleCollider: CircleCollider2D = null;
     headCollider: BoxCollider2D = null;
     footCollider: BoxCollider2D = null;
+    gm: GameManager;
+
+    //sword
+    sword: Node;
+    aura: ParticleSystem2D;
 
     //move
     direction = 1;
@@ -56,6 +61,10 @@ export class PlayerController extends Component {
     maxHP = 3;
     hp = this.maxHP;
 
+    //attack
+    attack = 100;
+    attackSpeed = 1;
+
     onLoad() {
         input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
@@ -64,6 +73,9 @@ export class PlayerController extends Component {
         this.circleCollider = this.node.getComponent(CircleCollider2D);
         this.oriGrav = this.rig.gravityScale;
         this.playerWidth = this.node.getComponent(UITransform).contentSize.x;
+        this.gm = find('Canvas/Game manager').getComponent(GameManager);
+        this.sword = this.node.getChildByName('Sword');
+        this.aura = this.node.getChildByName('Aura').getComponent(ParticleSystem2D);
 
         //get the box collider
         {
@@ -195,20 +207,20 @@ export class PlayerController extends Component {
             let startPosn = this.node.getWorldPosition().clone().add(v3(this.playerWidth / 1.9 * (j - 1), 4, 0));
             let endPosn = this.node.getWorldPosition().clone().add(v3(this.playerWidth / 1.9 * (j - 1), -10, 0));
 
-            {
-                let ui = instantiate(this.ui);
-                this.node.addChild(ui);
-                ui.setWorldPosition(startPosn);
-                ui.getComponent(Sprite).color = math.color(0, 0, 255, 255);
-                ui.scale.multiplyScalar(0.2);
-            }
-            {
-                let ui = instantiate(this.ui);
-                this.node.addChild(ui);
-                ui.setWorldPosition(endPosn);
-                ui.getComponent(Sprite).color = math.color(255, 0, 0, 255);
-                ui.scale.multiplyScalar(0.2);
-            }
+            //{
+            //    let ui = instantiate(this.ui);
+            //    this.node.addChild(ui);
+            //    ui.setWorldPosition(startPosn);
+            //    ui.getComponent(Sprite).color = math.color(0, 0, 255, 255);
+            //    ui.scale.multiplyScalar(0.2);
+            //}
+            //{
+            //    let ui = instantiate(this.ui);
+            //    this.node.addChild(ui);
+            //    ui.setWorldPosition(endPosn);
+            //    ui.getComponent(Sprite).color = math.color(255, 0, 0, 255);
+            //    ui.scale.multiplyScalar(0.2);
+            //}
 
             let results = PhysicsSystem2D.instance.raycast(startPosn, endPosn, ERaycast2DType.All);
             //console.log('check ground' + results.length);
@@ -252,6 +264,14 @@ export class PlayerController extends Component {
 
     update(deltaTime: number) {
 
+        //hp regen
+        if (this.hp < 3) {
+            this.hp += deltaTime * 0.1;
+            if (this.hp > 3) {
+                this.hp = 3;
+            }
+        }
+
         //refill gas
         if (this.gasFillReservation > 0) {
             this.gasFillReservation -= deltaTime;
@@ -282,6 +302,7 @@ export class PlayerController extends Component {
             case State.Normal:
                 //set the facing direction
                 this.node.setScale(v3(this.direction, this.node.scale.y, this.node.scale.z));
+                this.aura.angle = 20 + 110 * this.direction;
                 //walk
                 let velX = 0;
                 if (this.left || this.right) {
@@ -326,9 +347,7 @@ export class PlayerController extends Component {
     public hurt() {
         this.hp -= 1;
         if (this.hp <= 0) {
-            let gm: GameManager;
-            gm = find('Canvas/Game manager').getComponent(GameManager);
-            gm.gameOver();
+            this.gm.gameOver();
         }
     }
 

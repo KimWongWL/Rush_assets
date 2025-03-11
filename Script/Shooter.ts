@@ -1,5 +1,6 @@
-import { _decorator, Animation, Component, Node, EPhysics2DDrawFlags, Vec3, PhysicsSystem2D, ERaycast2DType, v3, UITransform, Prefab, instantiate, Vec2, Sprite, math, BoxCollider2D, Size } from 'cc';
+import { _decorator, Animation, Component, Node, find, Vec3, PhysicsSystem2D, ERaycast2DType, v3, UITransform, Prefab, instantiate, Vec2, Sprite, math, BoxCollider2D, Size } from 'cc';
 import { Bullet } from './Bullet';
+import { GameManager } from './GameManager';
 const { ccclass, property } = _decorator;
 
 
@@ -21,6 +22,7 @@ export class Shooter extends Component {
     @property
     fireRange: number = 100;
 
+    gm: GameManager;
     animation: Animation;
     bullet: Node;
     bulletScript: Bullet;
@@ -35,6 +37,9 @@ export class Shooter extends Component {
     bulletFireOff: Vec3 = Vec3.ZERO;
     lastPlayerPos: Vec3 = Vec3.ZERO;
     state = State.Idle;
+
+    //hp
+    hp = 100;
 
     //range = 500;
     //x = this.range;
@@ -52,7 +57,7 @@ export class Shooter extends Component {
         this.animation.on(Animation.EventType.FINISHED, this.onAnimationFinish, this);
         
         this.playerCenterOff = v3(0, this.player.getComponent(UITransform).contentSize.y / 2, 0);
-
+        this.gm = find('Canvas/Game manager').getComponent(GameManager);
         //PhysicsSystem2D.instance.enable = true;
         //PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.Shape;
 
@@ -171,6 +176,24 @@ export class Shooter extends Component {
         //        }
         //    }
         //}
+    }
+
+    public setHP(hp : number) {
+        this.hp = hp;
+    }
+
+    public hurt(damage : number) {
+        this.hp -= damage;
+        if (this.hp < 1) {
+            //die
+            this.node.active = false;
+            
+        }
+    }
+
+    onEnable() {
+        this.hp = 100;
+        this.state = State.Idle;
     }
 
     onAnimationFinish() {
