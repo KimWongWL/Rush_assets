@@ -6,6 +6,7 @@ const { ccclass, property } = _decorator;
 export class Bullet extends Component {
 
     public playerPosn: Vec3 = Vec3.ZERO;
+    parentRig: RigidBody2D;
     bullet: CircleCollider2D;
     destructTime = 1.5;
     fireTime = 0.5;
@@ -20,6 +21,7 @@ export class Bullet extends Component {
         this.bullet = this.node.getComponent(CircleCollider2D);
         //this.firePosnOff = v2(-this.node.getComponent(UITransform).contentSize.x * this.node.scale.x / 2, 0);
         this.rig = this.node.getComponent(RigidBody2D);
+        this.parentRig = this.node.getParent().getComponent(RigidBody2D);
 
         if (this.bullet) {
             this.bullet.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
@@ -62,7 +64,8 @@ export class Bullet extends Component {
         this.timer = 0;
         this.fired = false;
         this.node.setPosition(0, 38, 0);
-        this.rig.linearVelocity = v2(0, 0);
+        let vel = this.parentRig.linearVelocity;
+        this.rig.linearVelocity = vel;
         this.rig.enabledContactListener = true;
     }
 

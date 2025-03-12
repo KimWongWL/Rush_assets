@@ -13,22 +13,16 @@ export class GameManager extends Component {
     score: number = 0;
     strength = 0;
     strengthIncreaseTime = 30;
-    monsterList: Node[][] = null;
+    monsterList: Node[][] = [[], []];
 
     onLoad() {
         PhysicsSystem2D.instance.enable = true;
         //PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.Shape;
-        this.monsterList.push(null);
-        this.monsterList.push(null);
         let castle:Node = this.node.getChildByName('MonsterList_castle');
         let underground: Node = this.node.getChildByName('MonsterList_underground');
         for (let i = 0; i < 10; i++) {
-            //this.monsterList[0][i] = castle.getChildByName('Node-00' + i);
-            console.log('Node-00' + i);
-            this.monsterList[0].push(castle.getChildByName('Node-00' + i));
-            console.log(this.monsterList[0][i].name);
-            this.monsterList[0][i].name = '' + 1;
-            //this.monsterList[1][i] = underground.getChildByName('Node-00' + i);
+            this.monsterList[0][i] = castle.getChildByName('Node-00' + i);
+            this.monsterList[1][i] = underground.getChildByName('Node-00' + i);
         }
     }
 
