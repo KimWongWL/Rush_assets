@@ -60,6 +60,8 @@ export class PlayerController extends Component {
     //hp
     maxHP = 3;
     hp = this.maxHP;
+    invincibleTime = 0.1;
+    invincibleTimer = 0;
 
     //attack
     attack = 100;
@@ -118,6 +120,8 @@ export class PlayerController extends Component {
         this.jump = false;   //pressing space
         this.right = false;
         this.left = false;
+        this.attack = 100;
+        this.attackSpeed = 1;
     }
 
     onKeyDown(event: EventKeyboard) {
@@ -234,7 +238,7 @@ export class PlayerController extends Component {
                     let name: string = collider.node.name;
                     if (name == 'Wall') {
                         canFall = true;
-                        console.log(collider.node.name);
+                        //console.log(collider.node.name);
                         collider.node.getParent().getComponent(Door).disalbeForPlayer();
                     }
                     //else if (name.includes('OneWay')) {
@@ -270,6 +274,9 @@ export class PlayerController extends Component {
             if (this.hp > 3) {
                 this.hp = 3;
             }
+        }
+        if (this.invincibleTimer < this.invincibleTime) {
+            this.invincibleTimer += deltaTime;
         }
 
         //refill gas
@@ -310,7 +317,7 @@ export class PlayerController extends Component {
                 }
                 //jump
                 if (this.jump) {
-                    console.log(this.canJump);
+                    //console.log(this.canJump);
                     if (this.canJump) {
                         this.canJump = false;
                         //if only player still on ground, jump
@@ -325,7 +332,7 @@ export class PlayerController extends Component {
                         this.gas -= gasBurn;
                         this.gasFillReservation = 1;
                         if (this.rig.linearVelocity.y < 8) {
-                            this.rig.applyForce(v2(0, this.jumpForce / 10), v2(0, 0), true);
+                            this.rig.applyForce(v2(0, this.jumpForce / 5), v2(0, 0), true);
                         }
                     }
                 }
@@ -345,10 +352,14 @@ export class PlayerController extends Component {
     }
 
     public hurt() {
+        if (this.invincibleTimer < this.invincibleTime) {
+            return;
+        }
         this.hp -= 1;
         if (this.hp <= 0) {
             this.gm.gameOver();
         }
+        this.invincibleTimer = 0;
     }
 
     startRoll() {

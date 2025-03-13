@@ -1,45 +1,25 @@
-import { _decorator, Animation, Component, Node, find, Vec3, PhysicsSystem2D, ERaycast2DType, v3, UITransform, Prefab, instantiate, Vec2, Sprite, math, BoxCollider2D, Size } from 'cc';
+import { _decorator, Animation, Node, find, Vec3, PhysicsSystem2D, ERaycast2DType, v3, Prefab} from 'cc';
 import { Bullet } from './Bullet';
-import { GameManager } from './GameManager';
+import { Monster, State } from './Monster';
 const { ccclass, property } = _decorator;
 
 
-export const enum State {
-    Idle = 0,
-    Petrol = 1,
-    Attack = 2,
-}
-
 @ccclass('Shooter')
-export class Shooter extends Component {
+export class Shooter extends Monster {
 
     @property
     public canShoot: boolean = false;
-    @property({ type: Node })
-    public player: Node = null;
     @property({ type: Prefab })
     public ui: Prefab = null;
-    @property
-    fireRange: number = 100;
+    attackRange: number = 300;
 
-    gm: GameManager;
     animation: Animation;
     bullet: Node;
     bulletScript: Bullet;
-    cd = 2;
-    cooldown = this.cd;
-    rayCd = 0.5;
-    rayCooldown = this.rayCd;
     animEnd = true;
 
-    ownCenterOff: Vec3 = Vec3.ZERO;
-    playerCenterOff: Vec3 = Vec3.ZERO;
     bulletFireOff: Vec3 = Vec3.ZERO;
     lastPlayerPos: Vec3 = Vec3.ZERO;
-    state = State.Idle;
-
-    //hp
-    hp = 100;
 
     //range = 500;
     //x = this.range;
@@ -49,15 +29,11 @@ export class Shooter extends Component {
     //path = 0;
 
     onLoad() {
+        super.onLoad();
         this.animation = this.node.getComponent(Animation);
         this.bullet = this.node.getChildByName('Bullet');
         this.bulletScript = this.bullet.getComponent(Bullet);
-
-        this.ownCenterOff = v3(0, this.node.getComponent(UITransform).contentSize.y / 2, 0);
         this.animation.on(Animation.EventType.FINISHED, this.onAnimationFinish, this);
-        
-        this.playerCenterOff = v3(0, this.player.getComponent(UITransform).contentSize.y / 2, 0);
-        this.gm = find('Canvas/Game manager').getComponent(GameManager);
         //PhysicsSystem2D.instance.enable = true;
         //PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.Shape;
 
@@ -108,18 +84,11 @@ export class Shooter extends Component {
     }
 
     detectedPlayer() {
-        let targetPos = this.player.getWorldPosition().add(this.playerCenterOff)
-        let oriPos = this.node.getWorldPosition().add(this.ownCenterOff);
-
-        //cal distance
-        let x = (this.player.position.x + this.playerCenterOff.x) - (this.node.position.x + this.ownCenterOff.x);
-        let y = (this.player.position.y + this.playerCenterOff.y) - (this.node.position.y + this.ownCenterOff.y);
-        y *= 1.5;   //prevent player out of camera
-        let dis = Math.sqrt(x * x + y * y);
-        //check if player out of fire range
-        if (dis > this.fireRange) {
+        if (!super.detectedPlayer()) {
             return false;
         }
+        let targetPos = this.player.getWorldPosition().add(this.playerCenterOff)
+        let oriPos = this.node.getWorldPosition().add(this.ownCenterOff);
 
         let results = PhysicsSystem2D.instance.raycast(oriPos, targetPos, ERaycast2DType.Closest);
         if (results) {
@@ -178,49 +147,33 @@ export class Shooter extends Component {
         //}
     }
 
-    public setHP(hp : number) {
-        this.hp = hp;
-    }
-
-    public hurt(damage : number) {
-        this.hp -= damage;
-        if (this.hp < 1) {
-            //die
-            this.node.active = false;
-            
-        }
-    }
-
-    onEnable() {
-        this.hp = 100;
-        this.state = State.Idle;
-    }
-
     onAnimationFinish() {
         this.animEnd = true;
         this.cooldown = this.cd;
+        super.state = State.Idle;
+    }
+
+    attack() {
+        super.attack();
+        this.animEnd = false;
+        this.animation.play('shoot');
+        this.bullet.active = true;
+        this.bulletScript.playerPosn = this.player.getWorldPosition();
     }
 
     update(deltaTime: number) {
 
-        if (this.rayCooldown > 0) {
-            this.rayCooldown -= deltaTime;
-        }
-        if (this.cooldown > 0) {
-            this.cooldown -= deltaTime;
-        }
+        super.update(deltaTime);
 
         //do raycast to dectect player
-        if (this.rayCooldown <= 0) {
-            this.rayCooldown = this.rayCd;
-            if (this.detectedPlayer()) {
-                //console.log('player dectected');
-                this.lastPlayerPos = this.player.position;
-                if (this.cooldown <= 0 && this.animEnd) {
-                    this.animEnd = false;
-                    this.animation.play('shoot');
-                    this.bullet.active = true;
-                    this.bulletScript.playerPosn = this.player.getWorldPosition();
+        if (this.state == State.Petrol) {
+            if (this.rayCooldown <= 0) {
+                this.rayCooldown = this.rayCd;
+                if (this.detectedPlayer()) {
+                    this.lastPlayerPos = this.player.position;
+                    if (this.cooldown <= 0 && this.animEnd) {
+                        this.attack();
+                    }
                 }
             }
         }

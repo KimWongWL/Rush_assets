@@ -23,7 +23,7 @@
     "_active": true,
     "_components": [],
     "_prefab": {
-      "__id__": 189
+      "__id__": 190
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -54,7 +54,7 @@
     },
     "autoReleaseAssets": false,
     "_globals": {
-      "__id__": 190
+      "__id__": 191
     },
     "_id": "9b4cc296-7781-4a10-a7b5-cfcc88d86fd0"
   },
@@ -101,13 +101,13 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 186
-      },
-      {
         "__id__": 187
       },
       {
         "__id__": 188
+      },
+      {
+        "__id__": 189
       }
     ],
     "_prefab": null,
@@ -556,8 +556,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -261.577,
-      "y": -351.151,
+      "x": 52.852,
+      "y": -348.522,
       "z": 0
     },
     "_lrot": {
@@ -1062,7 +1062,7 @@
       "__expectedType__": "cc.Prefab"
     },
     "speed": 15,
-    "jumpForce": 750,
+    "jumpForce": 400,
     "rollSpeed": 50,
     "_id": "ec9esdxFBEC4Y5STTczRz5"
   },
@@ -5471,8 +5471,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 38.039,
-      "y": -351.12,
+      "x": -13.509,
+      "y": -349.537,
       "z": 0
     },
     "_lrot": {
@@ -6066,15 +6066,14 @@
     },
     "_enabled": true,
     "__prefab": null,
-    "canShoot": false,
     "player": {
       "__id__": 14
     },
+    "canShoot": false,
     "ui": {
       "__uuid__": "078a94b3-bfbe-4cff-ada7-ff862c61ccae",
       "__expectedType__": "cc.Prefab"
     },
-    "fireRange": 100,
     "_id": "4bCjLlo9pJb5HE/QnwTZzi"
   },
   {
@@ -6155,13 +6154,16 @@
       },
       {
         "__id__": 185
+      },
+      {
+        "__id__": 186
       }
     ],
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -3.512,
-      "y": -330.119,
+      "x": -60.275,
+      "y": -351.419,
       "z": 0
     },
     "_lrot": {
@@ -6205,7 +6207,7 @@
     "_anchorPoint": {
       "__type__": "cc.Vec2",
       "x": 0.5,
-      "y": 0.5
+      "y": 0
     },
     "_id": "82XQU7TNxAOanrN03rHKAx"
   },
@@ -6258,7 +6260,7 @@
     },
     "_enabled": true,
     "__prefab": null,
-    "enabledContactListener": false,
+    "enabledContactListener": true,
     "bullet": true,
     "awakeOnLoad": true,
     "_group": 1,
@@ -6273,7 +6275,7 @@
       "y": 0
     },
     "_angularVelocity": 0,
-    "_fixedRotation": false,
+    "_fixedRotation": true,
     "_id": "defU2ezU1ImLz3Ljl2QbCl"
   },
   {
@@ -6295,10 +6297,30 @@
     "_offset": {
       "__type__": "cc.Vec2",
       "x": 0,
-      "y": 0
+      "y": 20
     },
     "_radius": 20,
     "_id": "7cPOiZjDBMLLIARJ1a3WDi"
+  },
+  {
+    "__type__": "8d88b7KzUNPEbIAskCjjWHI",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 181
+    },
+    "_enabled": true,
+    "__prefab": null,
+    "player": {
+      "__id__": 14
+    },
+    "canShoot": false,
+    "ui": {
+      "__uuid__": "078a94b3-bfbe-4cff-ada7-ff862c61ccae",
+      "__expectedType__": "cc.Prefab"
+    },
+    "_id": "9b8IgjaYdHh40ESmR8Mihv"
   },
   {
     "__type__": "cc.UITransform",
@@ -6384,28 +6406,28 @@
   {
     "__type__": "cc.SceneGlobals",
     "ambient": {
-      "__id__": 191
-    },
-    "shadows": {
       "__id__": 192
     },
-    "_skybox": {
+    "shadows": {
       "__id__": 193
     },
-    "fog": {
+    "_skybox": {
       "__id__": 194
     },
-    "octree": {
+    "fog": {
       "__id__": 195
     },
-    "skin": {
+    "octree": {
       "__id__": 196
     },
-    "lightProbeInfo": {
+    "skin": {
       "__id__": 197
     },
-    "postSettings": {
+    "lightProbeInfo": {
       "__id__": 198
+    },
+    "postSettings": {
+      "__id__": 199
     },
     "bakedWithStationaryMainLight": false,
     "bakedWithHighpLightmap": false
