@@ -1,4 +1,4 @@
-import { _decorator, Component, Input, input, EventKeyboard, KeyCode, v2, v3, RigidBody2D, find, Animation, BoxCollider2D, CircleCollider2D, PhysicsSystem2D, Size, ERaycast2DType, Prefab, ParticleSystem2D, Node, math, UITransform } from 'cc';
+import { _decorator, Component, Input, input, EventKeyboard, KeyCode, v2, v3, RigidBody2D, find, Animation, BoxCollider2D, CircleCollider2D, PhysicsSystem2D, Size, ERaycast2DType, Prefab, ParticleSystem2D, Node, math, UITransform, EventMouse, BoxCollider } from 'cc';
 import { GameManager } from './GameManager';
 import { Door } from './Door';
 const { ccclass, property } = _decorator;
@@ -22,7 +22,6 @@ export class PlayerController extends Component {
     //@property({ type: State })
     public state: State = State.Normal;
     rig: RigidBody2D = null;
-    anim: Animation = null;
     boxCollider: BoxCollider2D = null;
     circleCollider: CircleCollider2D = null;
     headCollider: BoxCollider2D = null;
@@ -32,6 +31,8 @@ export class PlayerController extends Component {
     //sword
     sword: Node;
     aura: ParticleSystem2D;
+    slash: Animation = null;
+    swordCol: BoxCollider2D;
 
     //move
     direction = 1;
@@ -63,11 +64,14 @@ export class PlayerController extends Component {
     invincibleTime = 0.1;
     invincibleTimer = 0;
 
-    //attack
-    attack = 100;
-    attackSpeed = 1;
+    //attackPoint
+    attackPoint = 100;
+    attackInterval = 0.2;
+    intervalTimer = 0;
+    combo = false;
 
     onLoad() {
+        input.on(Input.EventType.MOUSE_DOWN, this.onMouseDown, this);
         input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
 
@@ -77,8 +81,10 @@ export class PlayerController extends Component {
         this.playerWidth = this.node.getComponent(UITransform).contentSize.x;
         this.gm = find('Canvas/Game manager').getComponent(GameManager);
         this.sword = this.node.getChildByName('Sword');
-        this.aura = this.node.getChildByName('Aura').getComponent(ParticleSystem2D);
-
+        this.slash = this.sword.getComponent(Animation);
+        this.swordCol = this.sword.getComponent(BoxCollider2D);
+        this.aura = this.sword.getChildByName('Aura').getComponent(ParticleSystem2D);
+        this.slash.on(Animation.EventType.FINISHED, this.slashFinished, this);
         //get the box collider
         {
             let colliders = this.node.getComponents(BoxCollider2D);
@@ -120,8 +126,47 @@ export class PlayerController extends Component {
         this.jump = false;   //pressing space
         this.right = false;
         this.left = false;
-        this.attack = 100;
-        this.attackSpeed = 1;
+        this.attackPoint = 100;
+        this.attackInterval = 0.2;
+    }
+
+    onMouseDown(event: EventMouse) {
+        if (event.getButton() == EventMouse.BUTTON_LEFT) {
+            this.attack();
+        }
+    }
+
+    attack() {
+        if (this.state == State.Attacking || this.intervalTimer < this.attackInterval) {
+            return;
+        }
+        this.state = State.Attacking;
+        this.swordCol.enabled = true;
+        this.intervalTimer = 0;
+        console.log(this.combo);
+        if (this.combo) {
+            this.combo = false;
+            console.log('2');
+            this.slash.play('slash2');
+        }
+        else {
+            this.combo = true;
+            console.log('1');
+            this.slash.play('slash1');
+        }
+
+    }
+
+    slashFinished(animationName: string, aa: string, aaa: string) {
+        this.state = State.Normal;
+        this.intervalTimer = this.attackInterval;
+    }
+
+    resetBlade() {
+        console.log('reset');
+        this.combo = false;
+        this.swordCol.enabled = false;
+        this.slash.play('slash2');
     }
 
     onKeyDown(event: EventKeyboard) {
@@ -268,6 +313,14 @@ export class PlayerController extends Component {
 
     update(deltaTime: number) {
 
+        //attack
+        if (this.intervalTimer < this.attackInterval * 2.5) {
+            this.intervalTimer += deltaTime;
+            if (this.intervalTimer >= this.attackInterval * 2.5 && this.combo) {
+                this.resetBlade();
+            }
+        }
+
         //hp regen
         if (this.hp < 3) {
             this.hp += deltaTime * 0.1;
@@ -365,21 +418,15 @@ export class PlayerController extends Component {
     startRoll() {
         this.node.setScale(v3(this.node.scale.x, 0.5, this.node.scale.z));
         this.rig.linearVelocity = v2(this.rollSpeed * this.direction, 0);
-        //this.boxCollider.enabled = false;
-        //this.circleCollider.enabled = false;
         {
             this.boxCollider.group = this.power(2, 8);
             this.boxCollider.size = new Size(this.boxCollider.size.x, this.boxCollider.size.y / 2);
             this.boxCollider.offset.multiplyScalar(0.5);
         }
-        //{
-        //    this.circleCollider.group = this.power(2, 8);
-        //    this.circleCollider.radius /= 2;
-        //    this.circleCollider.offset.multiplyScalar(0.5);
-        //}
         this.state = State.Rolling;
         this.rig.gravityScale = 0;
         this.rollCoolDown = this.rollDuration * 2;
+        this.slash.stop();
     }
 
     endRoll() {

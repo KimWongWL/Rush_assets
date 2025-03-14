@@ -9,12 +9,8 @@ export class Roller extends Monster {
 
     @property
     public canShoot: boolean = false;
-    @property({ type: Prefab })
-    public ui: Prefab = null;
     attackRange: number = 200;
 
-    lastPlayerPos: Vec3 = Vec3.ZERO;
-    rig: RigidBody2D;
     body: CircleCollider2D;
     face: Sprite;
 
@@ -28,7 +24,6 @@ export class Roller extends Monster {
 
     onLoad() {
         super.onLoad();
-        this.rig = this.node.getComponent(RigidBody2D);
         this.playerCenterOff = v3(this.player.getComponent(UITransform).contentSize.x, this.player.getComponent(UITransform).contentSize.y / 2, 0);
         this.body = this.node.getComponent(CircleCollider2D);
         this.face = this.node.getComponent(Sprite);
@@ -61,7 +56,7 @@ export class Roller extends Monster {
 
     attack() {
         super.attack();
-        this.body.sensor = true;
+        //this.body.sensor = true;
         this.rig.linearVelocity = v2(0, 0);
         this.rollTimer = 0;
         this.face.color = Color.GREEN;
@@ -70,7 +65,7 @@ export class Roller extends Monster {
 
     endAttack() {
         this.state = State.Idle;
-        this.body.sensor = false;
+        //this.body.sensor = false;
         this.rig.linearVelocity = v2(0, 0);
         this.cooldown = this.cd;
     }
@@ -102,19 +97,6 @@ export class Roller extends Monster {
 
         super.update(deltaTime);
 
-        //do raycast to dectect player
-        if (this.state == State.Petrol) {
-            if (this.rayCooldown <= 0) {
-                this.rayCooldown = this.rayCd;
-                if (this.detectedPlayer()) {
-                    this.lastPlayerPos = this.player.position;
-                    if (this.cooldown <= 0) {
-                        this.attack();
-                    }
-                }
-            }
-        }
-
         if (this.state == State.Attack) {
             this.rollTimer += deltaTime;
             if (this.rollTimer > this.rollDuration * 10) {
@@ -126,7 +108,7 @@ export class Roller extends Monster {
                     this.triggered = true;
                     this.collided = false;
                     this.face.color = Color.WHITE;
-                    this.rig.linearVelocity = v2(this.rollSpeed, 0);
+                    this.rig.linearVelocity = v2(this.rollSpeed * this.direction, 0);
                 }
             }
             else if (this.rollTimer > this.rollDuration * 6) {

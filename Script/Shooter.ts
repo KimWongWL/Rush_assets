@@ -1,4 +1,4 @@
-import { _decorator, Animation, Node, find, Vec3, PhysicsSystem2D, ERaycast2DType, v3, Prefab} from 'cc';
+import { _decorator, Animation, Node, find, Vec3, PhysicsSystem2D, ERaycast2DType, v3, Prefab, v2} from 'cc';
 import { Bullet } from './Bullet';
 import { Monster, State } from './Monster';
 const { ccclass, property } = _decorator;
@@ -9,8 +9,6 @@ export class Shooter extends Monster {
 
     @property
     public canShoot: boolean = false;
-    @property({ type: Prefab })
-    public ui: Prefab = null;
     attackRange: number = 300;
 
     animation: Animation;
@@ -19,7 +17,6 @@ export class Shooter extends Monster {
     animEnd = true;
 
     bulletFireOff: Vec3 = Vec3.ZERO;
-    lastPlayerPos: Vec3 = Vec3.ZERO;
 
     //range = 500;
     //x = this.range;
@@ -159,24 +156,35 @@ export class Shooter extends Monster {
         this.animation.play('shoot');
         this.bullet.active = true;
         this.bulletScript.playerPosn = this.player.getWorldPosition();
+        this.rig.linearVelocity = v2(0, 0);
     }
 
     update(deltaTime: number) {
 
         super.update(deltaTime);
 
-        //do raycast to dectect player
-        if (this.state == State.Petrol) {
-            if (this.rayCooldown <= 0) {
-                this.rayCooldown = this.rayCd;
-                if (this.detectedPlayer()) {
-                    this.lastPlayerPos = this.player.position;
-                    if (this.cooldown <= 0 && this.animEnd) {
-                        this.attack();
-                    }
-                }
+        if (this.state == State.Attack) {
+            if (this.detectedPlayer()) {
+                this.lastPlayerPos = this.player.position;
+            }
+            if (this.canShoot) {
+                this.canShoot = false;
+                this.bulletScript.shoot();
             }
         }
+
+        ////do raycast to dectect player
+        //if (this.state == State.Petrol) {
+        //    if (this.rayCooldown <= 0) {
+        //        this.rayCooldown = this.rayCd;
+        //        if (this.detectedPlayer()) {
+        //            this.lastPlayerPos = this.player.position;
+        //            if (this.cooldown <= 0 && this.animEnd) {
+        //                this.attack();
+        //            }
+        //        }
+        //    }
+        //}
 
         //if (this.canShoot) {
         //    this.canShoot = false;
@@ -191,13 +199,6 @@ export class Shooter extends Monster {
         //    this.bullet.angle = angle;
         //    this.canShoot = false;
         //}
-    }
-
-    lateUpdate(deltaTime: number) {
-        if(this.canShoot) {
-            this.canShoot = false;
-            this.bulletScript.shoot();
-        }
     }
 }
 

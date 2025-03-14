@@ -52,7 +52,7 @@ export class GameManager extends Component {
         let area = this.node.getChildByName('MonsterList_' + name);
         for (let i = 0; i < 9; i++) {
 
-            let shooter = math.random() % 2 == 0;
+            let shooter = math.randomRangeInt(0, 2) % 2 == 0;
             let monster:Node;
 
             if (shooter) {

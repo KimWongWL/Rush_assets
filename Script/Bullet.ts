@@ -70,6 +70,9 @@ export class Bullet extends Component {
     }
 
     public shoot() {
+        if (this.node.active) {
+            return;
+        }
         this.node.active = true;
         //console.log('fire');
         this.fired = true;
