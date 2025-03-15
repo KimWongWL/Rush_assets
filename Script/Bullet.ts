@@ -26,6 +26,7 @@ export class Bullet extends Component {
         if (this.bullet) {
             this.bullet.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
         }
+        this.selfDestory();
     }
 
     power(num, index) {
@@ -56,8 +57,9 @@ export class Bullet extends Component {
     }
 
     selfDestory() {
-        this.node.active = false;
         this.rig.enabledContactListener = false;
+        this.node.active = false;
+        //this.unschedule(this.selfDestory());
     }
 
     onEnable() {
@@ -70,9 +72,10 @@ export class Bullet extends Component {
     }
 
     public shoot() {
-        if (this.node.active) {
+        if (this.fired) {
             return;
         }
+        //console.log('bullet fire');
         this.node.active = true;
         //console.log('fire');
         this.fired = true;
@@ -85,7 +88,8 @@ export class Bullet extends Component {
 
     update(deltaTime: number) {
         if (this.timer >= this.destructTime) {
-            this.node.active = false;
+            //this.node.active = false;
+            this.selfDestory();
         }
         else {
             this.timer += deltaTime;

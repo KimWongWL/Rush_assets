@@ -1,6 +1,7 @@
 import { _decorator, Component, Input, input, EventKeyboard, KeyCode, v2, v3, RigidBody2D, find, Animation, BoxCollider2D, CircleCollider2D, PhysicsSystem2D, Size, ERaycast2DType, Prefab, ParticleSystem2D, Node, math, UITransform, EventMouse, BoxCollider } from 'cc';
 import { GameManager } from './GameManager';
 import { Door } from './Door';
+import { Sword } from './Sword';
 const { ccclass, property } = _decorator;
 
 export const enum  State {
@@ -30,6 +31,7 @@ export class PlayerController extends Component {
 
     //sword
     sword: Node;
+    swordScript: Sword;
     aura: ParticleSystem2D;
     slash: Animation = null;
     swordCol: BoxCollider2D;
@@ -81,6 +83,7 @@ export class PlayerController extends Component {
         this.playerWidth = this.node.getComponent(UITransform).contentSize.x;
         this.gm = find('Canvas/Game manager').getComponent(GameManager);
         this.sword = this.node.getChildByName('Sword');
+        this.swordScript = this.sword.getComponent(Sword);
         this.slash = this.sword.getComponent(Animation);
         this.swordCol = this.sword.getComponent(BoxCollider2D);
         this.aura = this.sword.getChildByName('Aura').getComponent(ParticleSystem2D);
@@ -126,8 +129,13 @@ export class PlayerController extends Component {
         this.jump = false;   //pressing space
         this.right = false;
         this.left = false;
-        this.attackPoint = 100;
         this.attackInterval = 0.2;
+        this.setAttackPoint(100);
+    }
+
+    public setAttackPoint(newAP : number) {
+        this.attackPoint = newAP;
+        this.swordScript.attackPoint = this.attackPoint;
     }
 
     onMouseDown(event: EventMouse) {
@@ -143,15 +151,15 @@ export class PlayerController extends Component {
         this.state = State.Attacking;
         this.swordCol.enabled = true;
         this.intervalTimer = 0;
-        console.log(this.combo);
+        //console.log(this.combo);
         if (this.combo) {
             this.combo = false;
-            console.log('2');
+            //console.log('2');
             this.slash.play('slash2');
         }
         else {
             this.combo = true;
-            console.log('1');
+            //console.log('1');
             this.slash.play('slash1');
         }
 
@@ -163,7 +171,7 @@ export class PlayerController extends Component {
     }
 
     resetBlade() {
-        console.log('reset');
+        //console.log('reset');
         this.combo = false;
         this.swordCol.enabled = false;
         this.slash.play('slash2');

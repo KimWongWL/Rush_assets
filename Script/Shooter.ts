@@ -164,10 +164,8 @@ export class Shooter extends Monster {
         super.update(deltaTime);
 
         if (this.state == State.Attack) {
-            if (this.detectedPlayer()) {
-                this.lastPlayerPos = this.player.position;
-            }
             if (this.canShoot) {
+                //console.log('shooter shoot');
                 this.canShoot = false;
                 this.bulletScript.shoot();
             }

@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, find, Vec3, v3, UITransform, RigidBody2D, PhysicsSystem2D, ERaycast2DType, math, v2, instantiate, Prefab, Sprite } from 'cc';
+import { _decorator, Component, Node, find, Vec3, v3, UITransform, RigidBody2D, PhysicsSystem2D, ERaycast2DType, math, v2, instantiate, Prefab, Sprite, ProgressBar } from 'cc';
 import { GameManager } from './GameManager';
 const { ccclass, property } = _decorator;
 
@@ -17,6 +17,7 @@ export class Monster extends Component {
     gm: GameManager;
     @property({ type: Prefab })
     public ui: Prefab = null;
+    hpBar: ProgressBar;
 
     restTime = 1;
     restTimer = 0;
@@ -32,6 +33,7 @@ export class Monster extends Component {
     rig: RigidBody2D;
 
     //stat
+    maxHp = 100;
     hp = 100;
     attackRange: number = 0;
     direction = 1;  //pointing right
@@ -45,6 +47,7 @@ export class Monster extends Component {
         this.gm = find('Canvas/Game manager').getComponent(GameManager);
         this.rig = this.node.getComponent(RigidBody2D);
         this.stepSize = this.node.getComponent(UITransform).contentSize.x;
+        this.hpBar = this.node.getChildByName('HpBar').getComponent(ProgressBar);
     }
 
     detectedPlayer() {
@@ -63,12 +66,17 @@ export class Monster extends Component {
 
     public setHP(hp: number) {
         this.hp = hp;
+        this.maxHp = hp;
+        this.hpBar.progress = this.hp / this.maxHp;
     }
 
     public hurt(damage: number) {
         this.hp -= damage;
+        this.hpBar.progress = this.hp / this.maxHp;
+        console.log(this.node.name , ' hurt ', damage);
         if (this.hp < 1) {
             //die
+            console.log(this.node.name, ' die');
             this.node.active = false;
             this.gm.addScore();
         }
