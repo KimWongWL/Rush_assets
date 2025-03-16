@@ -67,8 +67,9 @@ export class PlayerController extends Component {
     invincibleTimer = 0;
 
     //attackPoint
-    attackPoint = 100;
+    attackPoint = 50;
     attackInterval = 0.2;
+    attackRange = 1;
     intervalTimer = 0;
     combo = false;
 
@@ -130,12 +131,23 @@ export class PlayerController extends Component {
         this.right = false;
         this.left = false;
         this.attackInterval = 0.2;
-        this.setAttackPoint(100);
+        this.setAttackPoint(this.attackPoint);
     }
 
     public setAttackPoint(newAP : number) {
         this.attackPoint = newAP;
         this.swordScript.attackPoint = this.attackPoint;
+    }
+
+    public setAuraGrade(grade: number) {
+        if (grade < 1) {
+            grade = 1;
+        }
+        if (grade > 5) {
+            grade = 5;
+        }
+        this.aura.totalParticles = 10 * this.power(1.5, grade);
+        this.aura.speed = 25 + 5 * grade;
     }
 
     onMouseDown(event: EventMouse) {
@@ -151,6 +163,7 @@ export class PlayerController extends Component {
         this.state = State.Attacking;
         this.swordCol.enabled = true;
         this.intervalTimer = 0;
+        this.swordScript.resetHitList();
         //console.log(this.combo);
         if (this.combo) {
             this.combo = false;
@@ -458,7 +471,7 @@ export class PlayerController extends Component {
     }
 
     power(num, index) {
-        if (index == 1) {
+        if (index <= 1) {
             return num;
         }
         else {

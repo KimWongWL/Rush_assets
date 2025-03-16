@@ -35,6 +35,8 @@ export class Monster extends Component {
     //stat
     maxHp = 100;
     hp = 100;
+    invincibleTime = 0.1;
+    invincibleTimer = 0;
     attackRange: number = 0;
     direction = 1;  //pointing right
     stepSize = 0;
@@ -42,6 +44,7 @@ export class Monster extends Component {
     changeDirStep = 8;
 
     onLoad() {
+        this.player = find('Canvas/Player');
         this.ownCenterOff = v3(0, this.node.getComponent(UITransform).contentSize.y / 2, 0);
         this.playerCenterOff = v3(0, this.player.getComponent(UITransform).contentSize.y / 2, 0);
         this.gm = find('Canvas/Game manager').getComponent(GameManager);
@@ -52,11 +55,18 @@ export class Monster extends Component {
 
     detectedPlayer() {
         //cal distance
-        let x = (this.player.position.x + this.playerCenterOff.x) - (this.node.position.x + this.ownCenterOff.x);
-        let y = (this.player.position.y + this.playerCenterOff.y) - (this.node.position.y + this.ownCenterOff.y);
-        y *= 1.5;   //prevent player out of camera
-        let dis = Math.sqrt(x * x + y * y);
-        //console.log(dis);
+        //let x = (this.player.position.x + this.playerCenterOff.x) - (this.node.position.x + this.ownCenterOff.x);
+        //let y = (this.player.position.y + this.playerCenterOff.y) - (this.node.position.y + this.ownCenterOff.y);
+        //y *= 1.5;   //prevent player out of camera
+        //let dis = Math.sqrt(x * x + y * y);
+
+        let dis = Vec3.distance(this.player.getWorldPosition().add(this.playerCenterOff), this.node.getWorldPosition().add(this.ownCenterOff));
+
+        //console.log(this.node.name + ' ' + dis);
+        //console.log('x' + ' ' + this.player.position.x + this.playerCenterOff.x);
+        //console.log('y' + ' ' + this.player.position.y + this.playerCenterOff.y);
+        let oriPos = this.node.getWorldPosition();
+        let targetPos = this.player.getWorldPosition();
         //check if player out of attackRange range
         if (dis > this.attackRange) {
             return false;
@@ -71,6 +81,10 @@ export class Monster extends Component {
     }
 
     public hurt(damage: number) {
+        //if (this.invincibleTimer < this.invincibleTime) {
+        //    return;
+        //}
+        //this.invincibleTimer = 0;
         this.hp -= damage;
         this.hpBar.progress = this.hp / this.maxHp;
         console.log(this.node.name , ' hurt ', damage);
@@ -111,7 +125,7 @@ export class Monster extends Component {
         }
         this.step++;
         //console.log('step ', this.step, 'rand  ', math.randomRangeInt(0, 2));
-
+        
         //check if there is a ground
         let oriPos = this.node.getWorldPosition().add(v3(this.stepSize * this.direction, 5 ,0));
         let targetPos = oriPos.clone().subtract(v3(0, 15, 0));
@@ -152,6 +166,9 @@ export class Monster extends Component {
         }
         if (this.cooldown > 0) {
             this.cooldown -= deltaTime;
+        }
+        if (this.invincibleTimer < this.invincibleTime) {
+            this.invincibleTimer += deltaTime;
         }
         this.node.scale = v3(this.direction, this.node.scale.y, this.node.scale.z);
 

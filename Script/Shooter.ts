@@ -155,6 +155,7 @@ export class Shooter extends Monster {
         this.animEnd = false;
         this.animation.play('shoot');
         this.bullet.active = true;
+        this.direction = this.player.getWorldPosition().x > this.node.getWorldPosition().x ? 1 : -1;
         this.bulletScript.playerPosn = this.player.getWorldPosition();
         this.rig.linearVelocity = v2(0, 0);
     }
