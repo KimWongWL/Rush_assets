@@ -1,7 +1,7 @@
-import { _decorator, Component, Vec3, PhysicsSystem2D, Node, Prefab, instantiate, math, v3, Sprite, Label } from 'cc';
+import { _decorator, Component, Vec3, PhysicsSystem2D, Node, Prefab, instantiate, math, v3, Sprite, Label, find } from 'cc';
 import { Shooter } from './Shooter';
 import { Roller } from './Roller';
-import { PlayerController } from './PlayerController';
+import { PlayerController, State } from './PlayerController';
 const { ccclass, property } = _decorator;
 
 @ccclass('GameManager')
@@ -28,7 +28,14 @@ export class GameManager extends Component {
     monsterPosnList: Node[][] = [[], []];
     monsterList: Node[][][] = [[], []];
     playerScript: PlayerController;
-    scoreGrade: number[] = [10,20,40,70,100];
+    scoreGrade: number[] = [10, 20, 40, 70, 100];
+    trophyUI: Node;
+    trophyUILabels: Label[] = [];
+    playerDeftAttkStat = [50, 0.2, 1];
+    area: string = null;
+    //public attackPoint = 50;
+    //public attackInterval = 0.2;
+    //public attackRange = 1;
 
     onLoad() {
         this.playerScript = this.player.getComponent(PlayerController);
@@ -36,6 +43,11 @@ export class GameManager extends Component {
         this.scoreLabel.string = 'Score : ' + this.score;
         this.strengthLabel = this.strengthUI.getComponent(Label);
         this.strengthLabel.string = 'MonsterStrength : ' + this.strength;
+        this.trophyUI = find('Canvas/Camera/TrophyUI');
+        this.trophyUILabels[0] = this.trophyUI.getChildByName('Attack').getChildByName('Cur_Stat').getComponent(Label);
+        this.trophyUILabels[1] = this.trophyUI.getChildByName('AttackSpeed').getChildByName('Cur_Stat').getComponent(Label);
+        this.trophyUILabels[2] = this.trophyUI.getChildByName('AttackRange').getChildByName('Cur_Stat').getComponent(Label);
+        this.trophyUI.active = false;
         PhysicsSystem2D.instance.enable = true;
         //PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.Shape;
         let castle:Node = this.node.getChildByName('MonsterList_castle');
@@ -85,7 +97,65 @@ export class GameManager extends Component {
         this.playerScript.setAuraGrade(1);
     }
 
-    public respawnMonster(name: string) {
+    public pickTrophy(name: string) {
+        this.killAllMonster(name);
+        this.playerScript.state = State.Invincible;
+        this.playerScript.resetKey();
+        this.area = name;
+        this.trophyUI.active = true;
+        this.trophyUILabels[0].string = 'Current : ' + this.playerScript.attackPoint / this.playerDeftAttkStat[0] * 100 + '%';
+        let attkSpeed = Math.ceil(this.playerScript.attackInterval * this.playerDeftAttkStat[1] * 100);
+        this.trophyUILabels[1].string = 'Current : ' + attkSpeed + '%';
+        this.trophyUILabels[2].string = 'Current : ' + this.playerScript.attackRange / this.playerDeftAttkStat[2] * 100 + '%';
+    }
+
+    pick(event: Event, customEventData: string) {
+        let index = parseInt(customEventData, 10);
+        //console.log(index);
+        switch (index) {
+            case 0:
+                this.playerScript.attackPoint *= this.playerScript.attackPoint / this.playerDeftAttkStat[0] + 0.1;
+                break;
+            case 1:
+                this.playerScript.attackInterval /= this.playerScript.attackPoint * this.playerDeftAttkStat[1] + 0.1;
+                break;
+            case 2:
+                this.playerScript.attackRange *= this.playerScript.attackRange / this.playerDeftAttkStat[2] + 0.1;
+                break;
+            default:
+                break;
+        }
+        this.trophyUI.active = false;
+        this.playerScript.state = State.Normal;
+        this.player.setPosition(v3(0,0,0));
+        if (this.area) {
+            //this.respawnMonster(this.area);
+            this.scheduleOnce(this.respawnMonster(this.area), 10);
+            this.area = null;
+        }
+    }
+
+    killAllMonster(name: string) {
+        let index = -1;
+        if (name == 'castle') {
+            index = 0;
+        }
+        else if (name == 'underground') {
+            index = 1;
+        }
+
+        if (index == -1) {
+            return;
+        }
+
+        for (let i = 0; i < 10; i++) {
+
+            this.monsterList[index][0][i].active = false;
+            this.monsterList[index][1][i].active = false;
+        }
+    }
+
+    respawnMonster(name: string) {
         let index = -1;
         if (name == 'castle') {
             index = 0;
@@ -99,7 +169,9 @@ export class GameManager extends Component {
             return;
         }
 
-        let area = this.node.getChildByName('monsterPosnList_' + name);
+        let area = this.node.getChildByName('MonsterList_' + name);
+        //console.log(area.name);
+        area.getChildByName('Trophy').active = true;
         for (let i = 0; i < 10; i++) {
 
             let shooter = math.randomRangeInt(0, 2) % 2 == 0;

@@ -1,4 +1,4 @@
-import { _decorator, Component, Input, input, EventKeyboard, KeyCode, v2, v3, RigidBody2D, find, Animation, BoxCollider2D, CircleCollider2D, PhysicsSystem2D, Size, ERaycast2DType, Prefab, ParticleSystem2D, Node, math, UITransform, EventMouse, BoxCollider } from 'cc';
+import { _decorator, Component, Input, input, ProgressBar, EventKeyboard, KeyCode, v2, v3, RigidBody2D, find, Animation, BoxCollider2D, CircleCollider2D, PhysicsSystem2D, Size, ERaycast2DType, Prefab, ParticleSystem2D, Node, math, UITransform, EventMouse, BoxCollider } from 'cc';
 import { GameManager } from './GameManager';
 import { Door } from './Door';
 import { Sword } from './Sword';
@@ -9,6 +9,7 @@ export const enum  State {
     Attacking = 2,
     Rolling = 3,
     Dead = 4,
+    Invincible = 5,
 }
 
 @ccclass('PlayerController')
@@ -28,6 +29,7 @@ export class PlayerController extends Component {
     headCollider: BoxCollider2D = null;
     footCollider: BoxCollider2D = null;
     gm: GameManager;
+    gasUI: ProgressBar;
 
     //sword
     sword: Node;
@@ -67,9 +69,9 @@ export class PlayerController extends Component {
     invincibleTimer = 0;
 
     //attackPoint
-    attackPoint = 50;
-    attackInterval = 0.2;
-    attackRange = 1;
+    public attackPoint = 50;
+    public attackInterval = 0.2;
+    public attackRange = 1;
     intervalTimer = 0;
     combo = false;
 
@@ -89,6 +91,7 @@ export class PlayerController extends Component {
         this.swordCol = this.sword.getComponent(BoxCollider2D);
         this.aura = this.sword.getChildByName('Aura').getComponent(ParticleSystem2D);
         this.slash.on(Animation.EventType.FINISHED, this.slashFinished, this);
+        this.gasUI = find('Canvas/Camera/RunTimeUI/Gas').getComponent(ProgressBar);
         //get the box collider
         {
             let colliders = this.node.getComponents(BoxCollider2D);
@@ -151,6 +154,9 @@ export class PlayerController extends Component {
     }
 
     onMouseDown(event: EventMouse) {
+        if (this.state == State.Invincible) {
+            return;
+        }
         if (event.getButton() == EventMouse.BUTTON_LEFT) {
             this.attack();
         }
@@ -179,8 +185,15 @@ export class PlayerController extends Component {
     }
 
     slashFinished(animationName: string, aa: string, aaa: string) {
-        this.state = State.Normal;
+        if (this.state != State.Rolling) {
+            this.state = State.Normal;
+        }
         this.intervalTimer = this.attackInterval;
+    }
+
+    deactiveBlade() {
+        this.intervalTimer = this.attackInterval;
+        this.combo = false;
     }
 
     resetBlade() {
@@ -190,7 +203,16 @@ export class PlayerController extends Component {
         this.slash.play('slash2');
     }
 
+    public resetKey() {
+        this.right = false;
+        this.left = false;
+        this.jump = false;
+    }
+
     onKeyDown(event: EventKeyboard) {
+        if (this.state == State.Invincible) {
+            return;
+        }
         switch (event.keyCode) {
             case KeyCode.KEY_A:
                 this.direction = -1;
@@ -218,6 +240,9 @@ export class PlayerController extends Component {
     }
 
     onKeyUp(event: EventKeyboard) {
+        if (this.state == State.Invincible) {
+            return;
+        }
         switch (event.keyCode) {
             case KeyCode.KEY_A:
                 this.left = false;
@@ -359,6 +384,7 @@ export class PlayerController extends Component {
         }
         if (this.gasFillReservation <= 0) {
             this.gas += this.gasRegen * deltaTime;
+            this.gasUI.progress = this.gas / 100;
             if (this.gas > 100) {
                 this.gas = 100;
             }
@@ -379,7 +405,6 @@ export class PlayerController extends Component {
         }
 
         switch (this.state) {
-
             case State.Normal:
                 //set the facing direction
                 this.node.setScale(v3(this.direction, this.node.scale.y, this.node.scale.z));
@@ -405,6 +430,7 @@ export class PlayerController extends Component {
                     if (!this.canJump && this.gas > gasBurn) {
                         this.gas -= gasBurn;
                         this.gasFillReservation = 1;
+                        this.gasUI.progress = this.gas / 100;
                         if (this.rig.linearVelocity.y < 8) {
                             this.rig.applyForce(v2(0, this.jumpForce / 5), v2(0, 0), true);
                         }
@@ -447,7 +473,8 @@ export class PlayerController extends Component {
         this.state = State.Rolling;
         this.rig.gravityScale = 0;
         this.rollCoolDown = this.rollDuration * 2;
-        this.slash.stop();
+        this.slash.play('sword');
+        this.deactiveBlade();
     }
 
     endRoll() {
