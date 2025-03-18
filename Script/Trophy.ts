@@ -44,7 +44,7 @@ export class Trophy extends Component {
             }
 
             this.gm.pickTrophy(area);
-
+            this.node.active = false;
         }
     }
 }

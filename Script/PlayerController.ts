@@ -1,4 +1,4 @@
-import { _decorator, Component, Input, input, ProgressBar, EventKeyboard, KeyCode, v2, v3, RigidBody2D, find, Animation, BoxCollider2D, CircleCollider2D, PhysicsSystem2D, Size, ERaycast2DType, Prefab, ParticleSystem2D, Node, math, UITransform, EventMouse, BoxCollider } from 'cc';
+import { _decorator, Component, Input, input, Sprite, ProgressBar, EventKeyboard, KeyCode, v2, v3, RigidBody2D, find, Animation, BoxCollider2D, CircleCollider2D, PhysicsSystem2D, Size, ERaycast2DType, Prefab, ParticleSystem2D, Node, math, UITransform, EventMouse, BoxCollider } from 'cc';
 import { GameManager } from './GameManager';
 import { Door } from './Door';
 import { Sword } from './Sword';
@@ -67,6 +67,7 @@ export class PlayerController extends Component {
     hp = this.maxHP;
     invincibleTime = 0.1;
     invincibleTimer = 0;
+    hpUI: Sprite[] = [];
 
     //attackPoint
     public attackPoint = 50;
@@ -92,6 +93,10 @@ export class PlayerController extends Component {
         this.aura = this.sword.getChildByName('Aura').getComponent(ParticleSystem2D);
         this.slash.on(Animation.EventType.FINISHED, this.slashFinished, this);
         this.gasUI = find('Canvas/Camera/RunTimeUI/Gas').getComponent(ProgressBar);
+        let hp_node = find('Canvas/Camera/RunTimeUI/Hp');
+        for (let i = 0; i < this.maxHP; i++) {
+            this.hpUI[i] = hp_node.getChildByName('Heart-00' + i).getComponent(Sprite);
+        }
         //get the box collider
         {
             let colliders = this.node.getComponents(BoxCollider2D);
@@ -369,7 +374,12 @@ export class PlayerController extends Component {
 
         //hp regen
         if (this.hp < 3) {
+            //console.log(this.hp);
             this.hp += deltaTime * 0.1;
+            for (let i = 0; this.hp >= i + 1 && i < this.maxHP; i++) {
+                //console.log(this.hp);
+                this.hpUI[i].enabled = true;
+            }
             if (this.hp > 3) {
                 this.hp = 3;
             }
@@ -426,7 +436,7 @@ export class PlayerController extends Component {
                         }
                     }
 
-                    let gasBurn = this.gasRegen * 3 * deltaTime;
+                    let gasBurn = this.gasRegen * 2 * deltaTime;
                     if (!this.canJump && this.gas > gasBurn) {
                         this.gas -= gasBurn;
                         this.gasFillReservation = 1;
@@ -455,8 +465,15 @@ export class PlayerController extends Component {
         if (this.invincibleTimer < this.invincibleTime) {
             return;
         }
-        this.hp -= 1;
-        if (this.hp <= 0) {
+        this.hp --;
+        //console.log(this.hp);
+        for (let i = this.maxHP - 1; i >= 0; i--) {
+            if (this.hpUI[i].enabled == true) {
+                this.hpUI[i].enabled = false;
+                break;
+            }
+        }
+        if (this.hp < 1) {
             this.gm.gameOver();
         }
         this.invincibleTimer = 0;

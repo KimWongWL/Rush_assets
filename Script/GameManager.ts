@@ -1,4 +1,4 @@
-import { _decorator, Component, Vec3, PhysicsSystem2D, Node, Prefab, instantiate, math, v3, Sprite, Label, find } from 'cc';
+import { _decorator, Component, Vec3, PhysicsSystem2D, Node, Prefab, instantiate, math, v3, Sprite, Label, find, BoxCollider2D } from 'cc';
 import { Shooter } from './Shooter';
 import { Roller } from './Roller';
 import { PlayerController, State } from './PlayerController';
@@ -26,11 +26,16 @@ export class GameManager extends Component {
     strengthIncreaseTime = 30;
     strengthLabel: Label;
     monsterPosnList: Node[][] = [[], []];
+    areaBlock: BoxCollider2D[][] = [[], []];
     monsterList: Node[][][] = [[], []];
     playerScript: PlayerController;
     scoreGrade: number[] = [10, 20, 40, 70, 100];
     trophyUI: Node;
     trophyUILabels: Label[] = [];
+    gameoverUI: Node;
+    gameoverUITitle: Label;
+    gameoverUIRecord: Label;
+    recordFileName :string =  'Rush_Record';
     playerDeftAttkStat = [50, 0.2, 1];
     area: string = null;
     //public attackPoint = 50;
@@ -48,10 +53,18 @@ export class GameManager extends Component {
         this.trophyUILabels[1] = this.trophyUI.getChildByName('AttackSpeed').getChildByName('Cur_Stat').getComponent(Label);
         this.trophyUILabels[2] = this.trophyUI.getChildByName('AttackRange').getChildByName('Cur_Stat').getComponent(Label);
         this.trophyUI.active = false;
+        this.gameoverUI = find('Canvas/Camera/GameoverUI');
+        this.gameoverUITitle = this.gameoverUI.getChildByName('Bg').getChildByName('Title').getComponent(Label);
+        this.gameoverUIRecord = this.gameoverUI.getChildByName('Bg').getChildByName('Record').getComponent(Label);
         PhysicsSystem2D.instance.enable = true;
         //PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.Shape;
-        let castle:Node = this.node.getChildByName('MonsterList_castle');
+        let castle: Node = this.node.getChildByName('MonsterList_castle');
+        this.areaBlock[0] = castle.getComponents(BoxCollider2D);
+        console.log(this.areaBlock[0][0]);
+        console.log(this.areaBlock[0][1]);
         let underground: Node = this.node.getChildByName('MonsterList_underground');
+        this.areaBlock[1] = underground.getComponents(BoxCollider2D);
+        console.log(this.areaBlock[1][0]);
         for (let i = 0; i < 10; i++) {
             this.monsterPosnList[0][i] = castle.getChildByName('Node-00' + i);
             this.monsterPosnList[0][i].getComponent(Sprite).enabled = false;
@@ -67,12 +80,40 @@ export class GameManager extends Component {
 
         this.spawnMonster();
         this.respawnMonster('castle');
-        //this.respawnMonster('underground');
+        this.respawnMonster('underground');
+    }
+
+    getCurrentTime(): string {
+        return new Date().toISOString();
+    }
+
+    // Function to read a file
+    readFile(filePath: string): void {
+        readFile(filePath, 'utf8', (err, data) => {
+            if (err) {
+                console.error('Error reading file:', err);
+                return;
+            }
+            console.log('File contents:', data);
+        });
+    }
+
+    // Function to write to a file
+    writeFile(filePath: string, content: string): void {
+        writeFile(filePath, content, (err) => {
+            if (err) {
+                console.error('Error writing file:', err);
+                return;
+            }
+            console.log('File written successfully!');
+        });
     }
 
     public gameOver() {
         //do somthing
         console.log('gameover');
+
+
     }
 
     public addScore() {
@@ -104,7 +145,8 @@ export class GameManager extends Component {
         this.area = name;
         this.trophyUI.active = true;
         this.trophyUILabels[0].string = 'Current : ' + this.playerScript.attackPoint / this.playerDeftAttkStat[0] * 100 + '%';
-        let attkSpeed = Math.ceil(this.playerScript.attackInterval * this.playerDeftAttkStat[1] * 100);
+        console.log(this.playerScript.attackInterval + " " + this.playerDeftAttkStat[1]);
+        let attkSpeed = Math.round(this.playerDeftAttkStat[1] / this.playerScript.attackInterval * 100);
         this.trophyUILabels[1].string = 'Current : ' + attkSpeed + '%';
         this.trophyUILabels[2].string = 'Current : ' + this.playerScript.attackRange / this.playerDeftAttkStat[2] * 100 + '%';
     }
@@ -114,13 +156,13 @@ export class GameManager extends Component {
         //console.log(index);
         switch (index) {
             case 0:
-                this.playerScript.attackPoint *= this.playerScript.attackPoint / this.playerDeftAttkStat[0] + 0.1;
+                this.playerScript.attackPoint += this.playerDeftAttkStat[0] * 0.1;
                 break;
             case 1:
-                this.playerScript.attackInterval /= this.playerScript.attackPoint * this.playerDeftAttkStat[1] + 0.1;
+                this.playerScript.attackInterval = this.playerDeftAttkStat[1] / (this.playerDeftAttkStat[1] / this.playerScript.attackInterval + 0.1) ;
                 break;
             case 2:
-                this.playerScript.attackRange *= this.playerScript.attackRange / this.playerDeftAttkStat[2] + 0.1;
+                this.playerScript.attackRange += this.playerDeftAttkStat[2] * 0.1;
                 break;
             default:
                 break;
@@ -129,9 +171,8 @@ export class GameManager extends Component {
         this.playerScript.state = State.Normal;
         this.player.setPosition(v3(0,0,0));
         if (this.area) {
-            //this.respawnMonster(this.area);
-            this.scheduleOnce(this.respawnMonster(this.area), 10);
-            this.area = null;
+            this.killAllMonster(this.area);
+            this.scheduleOnce(function () { this.respawnMonster(this.area); }, 10);
         }
     }
 
@@ -146,6 +187,9 @@ export class GameManager extends Component {
 
         if (index == -1) {
             return;
+        }
+        for (let i = 0; i < this.areaBlock[index].length; i++) {
+            this.areaBlock[index][i].enabled = true;
         }
 
         for (let i = 0; i < 10; i++) {
@@ -162,6 +206,9 @@ export class GameManager extends Component {
         }
         else if (name == 'underground') {
             index = 1;
+        }
+        for (let i = 0; i < this.areaBlock[index].length; i++) {
+            this.areaBlock[index][i].enabled = false;
         }
 
         if (index == -1) {
