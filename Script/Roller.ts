@@ -1,4 +1,4 @@
-import { _decorator, v2, UITransform, Sprite, Vec3, PhysicsSystem2D, ERaycast2DType, v3, Prefab, RigidBody2D, CircleCollider2D, Contact2DType, IPhysics2DContact, Color } from 'cc';
+import { _decorator, v2, UITransform, Sprite, Vec3, PhysicsSystem2D, ERaycast2DType, v3, Prefab, RigidBody2D, CircleCollider2D, Contact2DType, IPhysics2DContact, Color, color } from 'cc';
 import { Monster, State } from './Monster';
 import { PlayerController } from './PlayerController';
 const { ccclass, property } = _decorator;
@@ -31,6 +31,11 @@ export class Roller extends Monster {
         if (this.body) {
             this.body.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
         }
+    }
+
+    onEnable() {
+        super.onEnable();
+        this.face.color = Color.WHITE;
     }
 
     detectedPlayer() {
@@ -85,7 +90,7 @@ export class Roller extends Monster {
         }
         //player
         if (object.group == this.power(2, 2)) {
-            if (!this.collided) {
+            if (!this.collided && this.triggered) {
                 this.collided = true;
                 object.node.getComponent(PlayerController).hurt();
                 //object.node.getComponent(RigidBody2D).applyForce(v2(0, this.force), v2(this.playerCenterOff.x, this.playerCenterOff.y * -this.direction), true);;

@@ -1,4 +1,4 @@
-import { _decorator, Component, Input, input, Sprite, ProgressBar, EventKeyboard, KeyCode, v2, v3, RigidBody2D, find, Animation, BoxCollider2D, CircleCollider2D, PhysicsSystem2D, Size, ERaycast2DType, Prefab, ParticleSystem2D, Node, math, UITransform, EventMouse, BoxCollider } from 'cc';
+import { _decorator, Component, Input, input, Sprite, AudioSource, ProgressBar, EventKeyboard, KeyCode, v2, v3, RigidBody2D, find, Animation, BoxCollider2D, CircleCollider2D, PhysicsSystem2D, Size, ERaycast2DType, Prefab, ParticleSystem2D, Node, math, UITransform, EventMouse, BoxCollider } from 'cc';
 import { GameManager } from './GameManager';
 import { Door } from './Door';
 import { Sword } from './Sword';
@@ -22,7 +22,7 @@ export class PlayerController extends Component {
     @property
     public jumpForce = 1000;
     //@property({ type: State })
-    public state: State = State.Normal;
+    public state: State = State.Invincible;
     rig: RigidBody2D = null;
     boxCollider: BoxCollider2D = null;
     circleCollider: CircleCollider2D = null;
@@ -68,6 +68,7 @@ export class PlayerController extends Component {
     invincibleTime = 0.1;
     invincibleTimer = 0;
     hpUI: Sprite[] = [];
+    hurtAudio: AudioSource;
 
     //attackPoint
     public attackPoint = 50;
@@ -75,6 +76,7 @@ export class PlayerController extends Component {
     public attackRange = 1;
     intervalTimer = 0;
     combo = false;
+    swingAudio: AudioSource[] = [];
 
     onLoad() {
         input.on(Input.EventType.MOUSE_DOWN, this.onMouseDown, this);
@@ -97,6 +99,13 @@ export class PlayerController extends Component {
         for (let i = 0; i < this.maxHP; i++) {
             this.hpUI[i] = hp_node.getChildByName('Heart-00' + i).getComponent(Sprite);
         }
+        let audios = this.node.getComponents(AudioSource);
+        for (let i = 0; i < 3; i++) {
+            console.log(audios[i]);
+        }
+        this.swingAudio[0] = audios[0];
+        this.swingAudio[1] = audios[1];
+        this.hurtAudio = audios[2];
         //get the box collider
         {
             let colliders = this.node.getComponents(BoxCollider2D);
@@ -132,19 +141,26 @@ export class PlayerController extends Component {
         this.initial();
     }
 
-    initial() {
+    public initial() {
         this.hp = this.maxHP;
         this.canJump = true; //state
         this.jump = false;   //pressing space
         this.right = false;
         this.left = false;
         this.attackInterval = 0.2;
-        this.setAttackPoint(this.attackPoint);
+        this.setAttackPoint(50);
+        this.setAttackRange(1);
+        this.state = State.Normal;
     }
 
     public setAttackPoint(newAP : number) {
         this.attackPoint = newAP;
         this.swordScript.attackPoint = this.attackPoint;
+    }
+
+    public setAttackRange(newRange: number) {
+        this.attackRange = newRange;
+        this.sword.scale = v3(newRange * this.direction, this.sword.scale.y, this.sword.scale.z);
     }
 
     public setAuraGrade(grade: number) {
@@ -158,20 +174,12 @@ export class PlayerController extends Component {
         this.aura.speed = 25 + 5 * grade;
     }
 
-    onMouseDown(event: EventMouse) {
-        if (this.state == State.Invincible) {
-            return;
-        }
-        if (event.getButton() == EventMouse.BUTTON_LEFT) {
-            this.attack();
-        }
-    }
-
     attack() {
         if (this.state == State.Attacking || this.intervalTimer < this.attackInterval) {
             return;
         }
         this.state = State.Attacking;
+        this.rig.linearVelocity = v2(0, this.rig.linearVelocity.y);
         this.swordCol.enabled = true;
         this.intervalTimer = 0;
         this.swordScript.resetHitList();
@@ -180,11 +188,13 @@ export class PlayerController extends Component {
             this.combo = false;
             //console.log('2');
             this.slash.play('slash2');
+            this.swingAudio[1].play();
         }
         else {
             this.combo = true;
             //console.log('1');
             this.slash.play('slash1');
+            this.swingAudio[0].play();
         }
 
     }
@@ -212,6 +222,15 @@ export class PlayerController extends Component {
         this.right = false;
         this.left = false;
         this.jump = false;
+    }
+
+    onMouseDown(event: EventMouse) {
+        if (this.state == State.Invincible) {
+            return;
+        }
+        if (event.getButton() == EventMouse.BUTTON_LEFT) {
+            this.attack();
+        }
     }
 
     onKeyDown(event: EventKeyboard) {
@@ -362,7 +381,74 @@ export class PlayerController extends Component {
         this.footCollider.tag = 1;
     }
 
+    public hurt() {
+        if (this.invincibleTimer < this.invincibleTime) {
+            return;
+        }
+        this.hurtAudio.play();
+        this.hp--;
+        this.gm.playerHurt();
+        //console.log(this.hp);
+        for (let i = this.maxHP - 1; i >= 0; i--) {
+            if (this.hpUI[i].enabled == true) {
+                this.hpUI[i].enabled = false;
+                break;
+            }
+        }
+        if (this.hp < 1) {
+            this.gm.gameOver();
+            this.state = State.Invincible;
+        }
+        this.invincibleTimer = 0;
+    }
+
+    startRoll() {
+        this.node.setScale(v3(this.node.scale.x, 0.5, this.node.scale.z));
+        this.rig.linearVelocity = v2(this.rollSpeed * this.direction, 0);
+        {
+            this.boxCollider.group = this.power(2, 8);
+            this.boxCollider.size = new Size(this.boxCollider.size.x, this.boxCollider.size.y / 2);
+            this.boxCollider.offset.multiplyScalar(0.5);
+        }
+        this.state = State.Rolling;
+        this.rig.gravityScale = 0;
+        this.rollCoolDown = this.rollDuration * 2;
+        this.slash.play('sword');
+        this.deactiveBlade();
+    }
+
+    endRoll() {
+        this.node.setScale(v3(this.node.scale.x, 1, this.node.scale.z));
+        this.rig.linearVelocity = v2(0, 0);
+        //this.boxCollider.enabled = true;
+        //this.circleCollider.enabled = true;
+        {
+            this.boxCollider.size = new Size(this.boxCollider.size.x, this.boxCollider.size.y * 2);
+            this.boxCollider.offset.multiplyScalar(2);
+            this.boxCollider.group = this.power(2, 2);
+        }
+        //{
+        //    this.circleCollider.radius *= 2;
+        //    this.circleCollider.offset.multiplyScalar(2);
+        //    this.circleCollider.group = this.power(2, 2);
+        //}
+        this.rig.gravityScale = this.oriGrav;
+        this.state = State.Normal;
+        this.rollTimer = 0;
+    }
+
+    power(num, index) {
+        if (index <= 1) {
+            return num;
+        }
+        else {
+            return this.power(num, index - 1) * num;
+        }
+    }
+
     update(deltaTime: number) {
+
+        console.log(this.left || this.right);
 
         //attack
         if (this.intervalTimer < this.attackInterval * 2.5) {
@@ -458,68 +544,6 @@ export class PlayerController extends Component {
                 break;
             default:
                 break;
-        }
-    }
-
-    public hurt() {
-        if (this.invincibleTimer < this.invincibleTime) {
-            return;
-        }
-        this.hp --;
-        //console.log(this.hp);
-        for (let i = this.maxHP - 1; i >= 0; i--) {
-            if (this.hpUI[i].enabled == true) {
-                this.hpUI[i].enabled = false;
-                break;
-            }
-        }
-        if (this.hp < 1) {
-            this.gm.gameOver();
-        }
-        this.invincibleTimer = 0;
-    }
-
-    startRoll() {
-        this.node.setScale(v3(this.node.scale.x, 0.5, this.node.scale.z));
-        this.rig.linearVelocity = v2(this.rollSpeed * this.direction, 0);
-        {
-            this.boxCollider.group = this.power(2, 8);
-            this.boxCollider.size = new Size(this.boxCollider.size.x, this.boxCollider.size.y / 2);
-            this.boxCollider.offset.multiplyScalar(0.5);
-        }
-        this.state = State.Rolling;
-        this.rig.gravityScale = 0;
-        this.rollCoolDown = this.rollDuration * 2;
-        this.slash.play('sword');
-        this.deactiveBlade();
-    }
-
-    endRoll() {
-        this.node.setScale(v3(this.node.scale.x, 1, this.node.scale.z));
-        this.rig.linearVelocity = v2(0, 0);
-        //this.boxCollider.enabled = true;
-        //this.circleCollider.enabled = true;
-        {
-            this.boxCollider.size = new Size(this.boxCollider.size.x, this.boxCollider.size.y * 2);
-            this.boxCollider.offset.multiplyScalar(2);
-            this.boxCollider.group = this.power(2, 2);
-        }
-        //{
-        //    this.circleCollider.radius *= 2;
-        //    this.circleCollider.offset.multiplyScalar(2);
-        //    this.circleCollider.group = this.power(2, 2);
-        //}
-        this.rig.gravityScale = this.oriGrav;
-        this.state = State.Normal;
-        this.rollTimer = 0;
-    }
-
-    power(num, index) {
-        if (index <= 1) {
-            return num;
-        }
-        else {
-            return this.power(num, index - 1) * num;
         }
     }
 }

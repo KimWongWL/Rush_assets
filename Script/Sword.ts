@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, IPhysics2DContact, Contact2DType, BoxCollider2D } from 'cc';
+import { _decorator, Component, Node, IPhysics2DContact, Contact2DType, BoxCollider2D, AudioSource } from 'cc';
 import { Shooter } from './Shooter';
 import { Roller } from './Roller';
 const { ccclass, property } = _decorator;
@@ -9,9 +9,11 @@ export class Sword extends Component {
     col: BoxCollider2D;
     public attackPoint: number = 0;
     hitList: string[] = [];
+    slashAudio: AudioSource;
 
     onLoad() {
         this.col = this.node.getComponent(BoxCollider2D);
+        this.slashAudio = this.node.getComponent(AudioSource);
 
         if (this.col) {
             this.col.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
@@ -45,6 +47,7 @@ export class Sword extends Component {
                 }
             }
 
+            this.slashAudio.play();
             this.hitList.push(object.node.name);
             let ts = object.node.getComponent(Shooter);
             if (!ts) {

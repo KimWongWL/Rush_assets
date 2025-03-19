@@ -1,7 +1,8 @@
-import { _decorator, Component, Vec3, PhysicsSystem2D, Node, Prefab, instantiate, math, v3, Sprite, Label, find, BoxCollider2D } from 'cc';
+import { _decorator, Component, Vec3, PhysicsSystem2D, Node, Prefab, instantiate, math, v3, Sprite, Label, find, BoxCollider2D, sys, Color, color } from 'cc';
 import { Shooter } from './Shooter';
 import { Roller } from './Roller';
 import { PlayerController, State } from './PlayerController';
+import { EDITOR } from 'cc/env';
 const { ccclass, property } = _decorator;
 
 @ccclass('GameManager')
@@ -30,12 +31,15 @@ export class GameManager extends Component {
     monsterList: Node[][][] = [[], []];
     playerScript: PlayerController;
     scoreGrade: number[] = [10, 20, 40, 70, 100];
+    runtimeUI: Node;
     trophyUI: Node;
     trophyUILabels: Label[] = [];
+    bloodUI: Sprite;
+    gamestartUI: Node;
     gameoverUI: Node;
     gameoverUITitle: Label;
     gameoverUIRecord: Label;
-    recordFileName :string =  'Rush_Record';
+    recordFileName :string =  '/Rush_Record';
     playerDeftAttkStat = [50, 0.2, 1];
     area: string = null;
     //public attackPoint = 50;
@@ -48,11 +52,14 @@ export class GameManager extends Component {
         this.scoreLabel.string = 'Score : ' + this.score;
         this.strengthLabel = this.strengthUI.getComponent(Label);
         this.strengthLabel.string = 'MonsterStrength : ' + this.strength;
+        this.runtimeUI = find('Canvas/Camera/RunTimeUI');
         this.trophyUI = find('Canvas/Camera/TrophyUI');
         this.trophyUILabels[0] = this.trophyUI.getChildByName('Attack').getChildByName('Cur_Stat').getComponent(Label);
         this.trophyUILabels[1] = this.trophyUI.getChildByName('AttackSpeed').getChildByName('Cur_Stat').getComponent(Label);
         this.trophyUILabels[2] = this.trophyUI.getChildByName('AttackRange').getChildByName('Cur_Stat').getComponent(Label);
         this.trophyUI.active = false;
+        this.bloodUI = find('Canvas/Camera/blood border').getComponent(Sprite);
+        this.gamestartUI = find('Canvas/Camera/GamestartUI');
         this.gameoverUI = find('Canvas/Camera/GameoverUI');
         this.gameoverUITitle = this.gameoverUI.getChildByName('Bg').getChildByName('Title').getComponent(Label);
         this.gameoverUIRecord = this.gameoverUI.getChildByName('Bg').getChildByName('Record').getComponent(Label);
@@ -60,11 +67,8 @@ export class GameManager extends Component {
         //PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.Shape;
         let castle: Node = this.node.getChildByName('MonsterList_castle');
         this.areaBlock[0] = castle.getComponents(BoxCollider2D);
-        console.log(this.areaBlock[0][0]);
-        console.log(this.areaBlock[0][1]);
         let underground: Node = this.node.getChildByName('MonsterList_underground');
         this.areaBlock[1] = underground.getComponents(BoxCollider2D);
-        console.log(this.areaBlock[1][0]);
         for (let i = 0; i < 10; i++) {
             this.monsterPosnList[0][i] = castle.getChildByName('Node-00' + i);
             this.monsterPosnList[0][i].getComponent(Sprite).enabled = false;
@@ -81,38 +85,64 @@ export class GameManager extends Component {
         this.spawnMonster();
         this.respawnMonster('castle');
         this.respawnMonster('underground');
+
+        //this.gameoverUITitle.string = sys.localStorage.path;
+        //console.log(sys.localStorage.path + this.recordFileName);
+    }
+
+    initial() {
+        this.gamestartUI.active = false;
+        this.trophyUI.active = false;
+        this.gameoverUI.active = false;
+        this.runtimeUI.active = true;
+        this.killAllMonster('castle');
+        this.killAllMonster('underground');
+        this.respawnMonster('castle');
+        this.respawnMonster('underground');
+        this.score = -1;
+        this.addScore();
+        this.playerHurt();
+        this.strength = 0;
+        this.strengthIncreaseTimer = -this.strengthIncreaseTime;
+        this.bloodUI.color = math.color(255, 255, 255, 0);
     }
 
     getCurrentTime(): string {
         return new Date().toISOString();
     }
 
-    // Function to read a file
-    readFile(filePath: string): void {
-        readFile(filePath, 'utf8', (err, data) => {
-            if (err) {
-                console.error('Error reading file:', err);
-                return;
-            }
-            console.log('File contents:', data);
-        });
+    createAndWriteFile(fileName: string, content: string) {
+        // Get the path to the user data directory
+        const filePath = `${sys.localStorage.path}/${fileName}`;
+
+        // Write the content to the file
+        sys.localStorage.setItem(fileName, content);
+
+        // Log the file path for reference
+        console.log(`File created at: ${filePath}`);
     }
 
-    // Function to write to a file
-    writeFile(filePath: string, content: string): void {
-        writeFile(filePath, content, (err) => {
-            if (err) {
-                console.error('Error writing file:', err);
-                return;
-            }
-            console.log('File written successfully!');
-        });
+    readFile(fileName: string) {
+        // Read the content from the file
+        const content = sys.localStorage.getItem(fileName);
+        if (content) {
+            console.log('File contents:', content);
+        } else {
+            console.log('File not found.');
+        }
+    }
+
+    restart() {
+        this.initial();
+        this.playerScript.initial();
     }
 
     public gameOver() {
         //do somthing
         console.log('gameover');
-
+        this.trophyUI.active = false;
+        this.gameoverUI.active = true;
+        this.runtimeUI.active = false;
 
     }
 
@@ -134,6 +164,7 @@ export class GameManager extends Component {
     }
 
     public playerHurt() {
+        this.bloodUI.color = math.color(255, 255, 255, 255);
         this.hiddenScore = 0;
         this.playerScript.setAuraGrade(1);
     }
@@ -143,6 +174,7 @@ export class GameManager extends Component {
         this.playerScript.state = State.Invincible;
         this.playerScript.resetKey();
         this.area = name;
+        this.runtimeUI.active = false;
         this.trophyUI.active = true;
         this.trophyUILabels[0].string = 'Current : ' + this.playerScript.attackPoint / this.playerDeftAttkStat[0] * 100 + '%';
         console.log(this.playerScript.attackInterval + " " + this.playerDeftAttkStat[1]);
@@ -156,13 +188,13 @@ export class GameManager extends Component {
         //console.log(index);
         switch (index) {
             case 0:
-                this.playerScript.attackPoint += this.playerDeftAttkStat[0] * 0.1;
+                this.playerScript.setAttackPoint(this.playerScript.attackPoint + this.playerDeftAttkStat[0] * 0.1);
                 break;
             case 1:
                 this.playerScript.attackInterval = this.playerDeftAttkStat[1] / (this.playerDeftAttkStat[1] / this.playerScript.attackInterval + 0.1) ;
                 break;
             case 2:
-                this.playerScript.attackRange += this.playerDeftAttkStat[2] * 0.1;
+                this.playerScript.setAttackRange(this.playerScript.attackRange + this.playerDeftAttkStat[2] * 0.1);
                 break;
             default:
                 break;
@@ -272,6 +304,10 @@ export class GameManager extends Component {
     }
 
     update(deltaTime: number) {
+        if (this.bloodUI.color.a > 0) {
+            this.bloodUI.color = math.color(255, 255, 255, this.bloodUI.color.a - deltaTime * 500);
+        }
+
         this.strengthIncreaseTimer += deltaTime;
         if (this.strengthIncreaseTimer > this.strengthIncreaseTime) {
             this.strength++;

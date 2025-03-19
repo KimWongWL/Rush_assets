@@ -1,4 +1,4 @@
-import { _decorator, Animation, Node, find, Vec3, PhysicsSystem2D, ERaycast2DType, v3, Prefab, v2} from 'cc';
+import { _decorator, Animation, Node, find, Vec3, PhysicsSystem2D, ERaycast2DType, v3, AudioSource, v2} from 'cc';
 import { Bullet } from './Bullet';
 import { Monster, State } from './Monster';
 const { ccclass, property } = _decorator;
@@ -15,6 +15,7 @@ export class Shooter extends Monster {
     bullet: Node;
     bulletScript: Bullet;
     animEnd = true;
+    shootAudio: AudioSource;
 
     bulletFireOff: Vec3 = Vec3.ZERO;
 
@@ -27,6 +28,7 @@ export class Shooter extends Monster {
 
     onLoad() {
         super.onLoad();
+        this.shootAudio = this.node.getComponent(AudioSource);
         this.animation = this.node.getComponent(Animation);
         this.bullet = this.node.getChildByName('Bullet');
         this.bulletScript = this.bullet.getComponent(Bullet);
@@ -169,6 +171,7 @@ export class Shooter extends Monster {
                 //console.log('shooter shoot');
                 this.canShoot = false;
                 this.bulletScript.shoot();
+                this.shootAudio.play();
             }
         }
 
