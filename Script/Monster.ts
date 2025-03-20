@@ -87,20 +87,21 @@ export class Monster extends Component {
         //this.invincibleTimer = 0;
         this.hp -= damage;
         this.hpBar.progress = this.hp / this.maxHp;
-        console.log(this.node.name , ' hurt ', damage);
+        //console.log(this.node.name , ' hurt ', damage);
         if (this.hp < 1) {
             //die
-            console.log(this.node.name, ' die');
+            //console.log(this.node.name, ' die');
             this.node.active = false;
             this.gm.addScore();
         }
     }
 
     onEnable() {
-        this.hp = 100;
+        //this.hp = 100;
         this.state = State.Idle;
         this.step = 0;
         this.direction = 1;
+        this.setHP(100 * (1 + 0.1 * this.gm.strength));
     }
 
     attack() {

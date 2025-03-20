@@ -27,15 +27,23 @@ export class Roller extends Monster {
         this.playerCenterOff = v3(this.player.getComponent(UITransform).contentSize.x, this.player.getComponent(UITransform).contentSize.y / 2, 0);
         this.body = this.node.getComponent(CircleCollider2D);
         this.face = this.node.getComponent(Sprite);
+    }
+
+    onEnable() {
+        super.onEnable();
+        this.face.color = Color.WHITE;
+        this.rig.enabledContactListener = true;
 
         if (this.body) {
             this.body.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
         }
     }
 
-    onEnable() {
-        super.onEnable();
-        this.face.color = Color.WHITE;
+    onDisable() {
+        this.rig.enabledContactListener = false;
+        if (this.body) {
+            this.body.off(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+        }
     }
 
     detectedPlayer() {
@@ -92,7 +100,8 @@ export class Roller extends Monster {
         if (object.group == this.power(2, 2)) {
             if (!this.collided && this.triggered) {
                 this.collided = true;
-                object.node.getComponent(PlayerController).hurt();
+                //object.node.getComponent(PlayerController).hurt();
+                //this.gm.playerHurt();
                 //object.node.getComponent(RigidBody2D).applyForce(v2(0, this.force), v2(this.playerCenterOff.x, this.playerCenterOff.y * -this.direction), true);;
             }
         }

@@ -29,6 +29,12 @@ export class Sword extends Component {
         }
     }
 
+    onDestroy() {
+        if (this.col) {
+            this.col.off(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+        }
+    }
+
     public resetHitList() {
         this.hitList = [];
     }

@@ -1,8 +1,5 @@
-import { _decorator, Component, Vec3, PhysicsSystem2D, Node, Prefab, instantiate, math, v3, Sprite, Label, find, BoxCollider2D, sys, Color, color } from 'cc';
-import { Shooter } from './Shooter';
-import { Roller } from './Roller';
+import { _decorator, Component, Vec3, PhysicsSystem2D, Node, Prefab, instantiate, math, v3, Sprite, Label, find, BoxCollider2D, sys, Color, color, log } from 'cc';
 import { PlayerController, State } from './PlayerController';
-import { EDITOR } from 'cc/env';
 const { ccclass, property } = _decorator;
 
 @ccclass('GameManager')
@@ -21,8 +18,9 @@ export class GameManager extends Component {
 
     score: number = 0;
     hiddenScore = 0;
+    highestHiddenScore = 0;
     scoreLabel: Label;
-    strength = 0;
+    public strength = 0;
     strengthIncreaseTimer = -30;
     strengthIncreaseTime = 30;
     strengthLabel: Label;
@@ -37,8 +35,8 @@ export class GameManager extends Component {
     bloodUI: Sprite;
     gamestartUI: Node;
     gameoverUI: Node;
-    gameoverUITitle: Label;
-    gameoverUIRecord: Label;
+    gameoverUIScore: Label;
+    gameoverUIHidden: Label;
     recordFileName :string =  '/Rush_Record';
     playerDeftAttkStat = [50, 0.2, 1];
     area: string = null;
@@ -48,6 +46,8 @@ export class GameManager extends Component {
 
     onLoad() {
         this.playerScript = this.player.getComponent(PlayerController);
+        this.player.on('playerHurt', this.playerHurt, this);
+        this.player.on('gameOver', this.gameOver, this);
         this.scoreLabel = this.scoreUI.getComponent(Label);
         this.scoreLabel.string = 'Score : ' + this.score;
         this.strengthLabel = this.strengthUI.getComponent(Label);
@@ -57,12 +57,12 @@ export class GameManager extends Component {
         this.trophyUILabels[0] = this.trophyUI.getChildByName('Attack').getChildByName('Cur_Stat').getComponent(Label);
         this.trophyUILabels[1] = this.trophyUI.getChildByName('AttackSpeed').getChildByName('Cur_Stat').getComponent(Label);
         this.trophyUILabels[2] = this.trophyUI.getChildByName('AttackRange').getChildByName('Cur_Stat').getComponent(Label);
-        this.trophyUI.active = false;
         this.bloodUI = find('Canvas/Camera/blood border').getComponent(Sprite);
+        console.log(this.bloodUI);
         this.gamestartUI = find('Canvas/Camera/GamestartUI');
         this.gameoverUI = find('Canvas/Camera/GameoverUI');
-        this.gameoverUITitle = this.gameoverUI.getChildByName('Bg').getChildByName('Title').getComponent(Label);
-        this.gameoverUIRecord = this.gameoverUI.getChildByName('Bg').getChildByName('Record').getComponent(Label);
+        this.gameoverUIScore = find('Canvas/Camera/GameoverUI/Bg/Score/Record').getComponent(Label);
+        this.gameoverUIHidden = find('Canvas/Camera/GameoverUI/Bg/Hidden Score/Record').getComponent(Label);
         PhysicsSystem2D.instance.enable = true;
         //PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.Shape;
         let castle: Node = this.node.getChildByName('MonsterList_castle');
@@ -83,11 +83,14 @@ export class GameManager extends Component {
         }
 
         this.spawnMonster();
-        this.respawnMonster('castle');
-        this.respawnMonster('underground');
 
         //this.gameoverUITitle.string = sys.localStorage.path;
         //console.log(sys.localStorage.path + this.recordFileName);
+
+        this.gamestartUI.active = true;
+        this.trophyUI.active = false;
+        this.gameoverUI.active = false;
+        this.runtimeUI.active = false;
     }
 
     initial() {
@@ -143,13 +146,17 @@ export class GameManager extends Component {
         this.trophyUI.active = false;
         this.gameoverUI.active = true;
         this.runtimeUI.active = false;
-
+        this.gameoverUIScore.string = '' + this.score;
+        this.gameoverUIHidden.string = '' + this.highestHiddenScore;
     }
 
     public addScore() {
         this.score++;
         this.scoreLabel.string = 'Score : ' + this.score;
         this.hiddenScore++;
+        if (this.hiddenScore > this.highestHiddenScore) {
+            this.highestHiddenScore = this.hiddenScore;
+        }
         for (let i = 0; i < this.scoreGrade.length; i++) {
             if (this.hiddenScore < this.scoreGrade[i]) {
                 return;
@@ -157,16 +164,20 @@ export class GameManager extends Component {
             if (this.hiddenScore > this.scoreGrade[i]) {
                 continue;
             }
-            //hiddenScore = this.scoreGrade[i]
+            this.hiddenScore = this.scoreGrade[i]
             this.playerScript.setAuraGrade(i + 1);
             return;
         }
     }
 
     public playerHurt() {
+        console.log('nice');
+        //console.log(this.bloodUI);
+        log(this.node.name);
+        log(this.bloodUI);
         this.bloodUI.color = math.color(255, 255, 255, 255);
         this.hiddenScore = 0;
-        this.playerScript.setAuraGrade(1);
+        //this.playerScript.setAuraGrade(1);
     }
 
     public pickTrophy(name: string) {
@@ -258,22 +269,22 @@ export class GameManager extends Component {
                 shooter = false;
             }
             let monster: Node;
-            let ts: any;
+            //let ts: any;
 
             if (shooter) {
                 //monster = instantiate(this.shooter);
                 monster = this.monsterList[index][1][i];
-                ts = monster.getComponent(Shooter);
+                //ts = monster.getComponent(Shooter);
             }
             else {
                 //monster = instantiate(this.roller);
                 monster = this.monsterList[index][0][i];
-                ts = monster.getComponent(Roller);
+                //ts = monster.getComponent(Roller);
             }
 
             monster.setPosition(v3(0, 0, 0));
             monster.active = true;
-            ts.setHP(100 * (1 + 0.1 * this.strength));
+            //ts.setHP(100 * (1 + 0.1 * this.strength));
         }
     }
 

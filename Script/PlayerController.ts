@@ -1,5 +1,5 @@
 import { _decorator, Component, Input, input, Sprite, AudioSource, ProgressBar, EventKeyboard, KeyCode, v2, v3, RigidBody2D, find, Animation, BoxCollider2D, CircleCollider2D, PhysicsSystem2D, Size, ERaycast2DType, Prefab, ParticleSystem2D, Node, math, UITransform, EventMouse, BoxCollider } from 'cc';
-import { GameManager } from './GameManager';
+//import { GameManager } from './GameManager';
 import { Door } from './Door';
 import { Sword } from './Sword';
 const { ccclass, property } = _decorator;
@@ -28,7 +28,7 @@ export class PlayerController extends Component {
     circleCollider: CircleCollider2D = null;
     headCollider: BoxCollider2D = null;
     footCollider: BoxCollider2D = null;
-    gm: GameManager;
+    //gm: GameManager;
     gasUI: ProgressBar;
 
     //sword
@@ -81,13 +81,14 @@ export class PlayerController extends Component {
     onLoad() {
         input.on(Input.EventType.MOUSE_DOWN, this.onMouseDown, this);
         input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
+        input.on(Input.EventType.KEY_PRESSING, this.onKeyHold, this);
         input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
 
         this.rig = this.node.getComponent(RigidBody2D);
         this.circleCollider = this.node.getComponent(CircleCollider2D);
         this.oriGrav = this.rig.gravityScale;
         this.playerWidth = this.node.getComponent(UITransform).contentSize.x;
-        this.gm = find('Canvas/Game manager').getComponent(GameManager);
+        //this.gm = find('Canvas/Game manager').getComponent(GameManager);
         this.sword = this.node.getChildByName('Sword');
         this.swordScript = this.sword.getComponent(Sword);
         this.slash = this.sword.getComponent(Animation);
@@ -100,9 +101,6 @@ export class PlayerController extends Component {
             this.hpUI[i] = hp_node.getChildByName('Heart-00' + i).getComponent(Sprite);
         }
         let audios = this.node.getComponents(AudioSource);
-        for (let i = 0; i < 3; i++) {
-            console.log(audios[i]);
-        }
         this.swingAudio[0] = audios[0];
         this.swingAudio[1] = audios[1];
         this.hurtAudio = audios[2];
@@ -151,6 +149,14 @@ export class PlayerController extends Component {
         this.setAttackPoint(50);
         this.setAttackRange(1);
         this.state = State.Normal;
+        this.node.position = v3(0, -300, 0);
+    }
+
+    onDestroy() {
+        input.off(Input.EventType.MOUSE_DOWN, this.onMouseDown, this);
+        input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
+        input.off(Input.EventType.KEY_PRESSING, this.onKeyHold, this);
+        input.off(Input.EventType.KEY_UP, this.onKeyUp, this);
     }
 
     public setAttackPoint(newAP : number) {
@@ -180,6 +186,7 @@ export class PlayerController extends Component {
         }
         this.state = State.Attacking;
         this.rig.linearVelocity = v2(0, this.rig.linearVelocity.y);
+        this.jump = false;
         this.swordCol.enabled = true;
         this.intervalTimer = 0;
         this.swordScript.resetHitList();
@@ -196,7 +203,6 @@ export class PlayerController extends Component {
             this.slash.play('slash1');
             this.swingAudio[0].play();
         }
-
     }
 
     slashFinished(animationName: string, aa: string, aaa: string) {
@@ -241,10 +247,12 @@ export class PlayerController extends Component {
             case KeyCode.KEY_A:
                 this.direction = -1;
                 this.left = true;
+                this.right = false;
                 break;
             case KeyCode.KEY_D:
                 this.direction = 1;
                 this.right = true;
+                this.left = false;
                 break;
             case KeyCode.SPACE:
                 this.jump = true;
@@ -257,6 +265,33 @@ export class PlayerController extends Component {
                     break;
                 }
                 this.startRoll();
+                break;
+            default:
+                break;
+        }
+    }
+
+    //prevent player stop when attack
+    onKeyHold(event: EventKeyboard) {
+        if (this.state == State.Invincible) {
+            return;
+        }
+        switch (event.keyCode) {
+            case KeyCode.KEY_A:
+                this.direction = -1;
+                this.left = true;
+                this.right = false;
+                break;
+            case KeyCode.KEY_D:
+                this.direction = 1;
+                this.right = true;
+                this.left = false;
+                break;
+            case KeyCode.SPACE:
+                break;
+            case KeyCode.KEY_S:
+                break;
+            case KeyCode.SHIFT_LEFT:
                 break;
             default:
                 break;
@@ -387,8 +422,10 @@ export class PlayerController extends Component {
         }
         this.hurtAudio.play();
         this.hp--;
-        this.gm.playerHurt();
-        //console.log(this.hp);
+        this.setAuraGrade(1);
+        //this.gm.playerHurt();
+        console.log('player hurt');
+        this.node.emit('playerHurt');
         for (let i = this.maxHP - 1; i >= 0; i--) {
             if (this.hpUI[i].enabled == true) {
                 this.hpUI[i].enabled = false;
@@ -396,7 +433,8 @@ export class PlayerController extends Component {
             }
         }
         if (this.hp < 1) {
-            this.gm.gameOver();
+            //this.gm.gameOver();
+            this.node.emit('gameOver');
             this.state = State.Invincible;
         }
         this.invincibleTimer = 0;
@@ -447,8 +485,6 @@ export class PlayerController extends Component {
     }
 
     update(deltaTime: number) {
-
-        console.log(this.left || this.right);
 
         //attack
         if (this.intervalTimer < this.attackInterval * 2.5) {

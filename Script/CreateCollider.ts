@@ -95,7 +95,9 @@ export class CreateCollider extends Component {
                     //oneway.getComponent(Sprite).enabled = true;
                     //oneway.getComponentInChildren(Sprite).enabled = true;
                 }
-                tile.node.destroy();
+                if (tile.node) {
+                    tile.node.destroy();
+                }
             }
         }
     }

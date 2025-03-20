@@ -18,6 +18,18 @@ export class Trophy extends Component {
         }
     }
 
+    onEnable() {
+        if (this.col) {
+            this.col.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+        }
+    }
+
+    onDisable() {
+        if (this.col) {
+            this.col.off(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+        }
+    }
+
     power(num, index) {
         if (index == 1) {
             return num;

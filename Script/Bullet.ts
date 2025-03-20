@@ -22,10 +22,6 @@ export class Bullet extends Component {
         //this.firePosnOff = v2(-this.node.getComponent(UITransform).contentSize.x * this.node.scale.x / 2, 0);
         this.rig = this.node.getComponent(RigidBody2D);
         this.parentRig = this.node.getParent().getComponent(RigidBody2D);
-
-        if (this.bullet) {
-            this.bullet.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
-        }
         this.selfDestory();
     }
 
@@ -57,18 +53,24 @@ export class Bullet extends Component {
     }
 
     selfDestory() {
-        this.rig.enabledContactListener = false;
         this.node.active = false;
         //this.unschedule(this.selfDestory());
+        this.rig.enabledContactListener = false;
+        if (this.bullet) {
+            this.bullet.off(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+        }
     }
 
     onEnable() {
+        this.rig.enabledContactListener = true;
         this.timer = 0;
         this.fired = false;
         this.node.setPosition(0, 38, 0);
         let vel = this.parentRig.linearVelocity;
         this.rig.linearVelocity = vel;
-        this.rig.enabledContactListener = true;
+        if (this.bullet) {
+            this.bullet.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+        }
     }
 
     public shoot() {

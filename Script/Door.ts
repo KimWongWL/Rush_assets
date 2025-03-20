@@ -20,6 +20,18 @@ export class Door extends Component {
         }
     }
 
+    onEnable() {
+        if (this.door) {
+            this.door.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+        }
+    }
+
+    onDisable() {
+        if (this.door) {
+            this.door.off(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+        }
+    }
+
     public disalbeForPlayer() {
         //set to door
         this.wall.group = this.power(2, 4);
