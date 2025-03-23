@@ -45,9 +45,11 @@ export class GameManager extends Component {
     //public attackRange = 1;
 
     onLoad() {
-        this.playerScript = this.player.getComponent(PlayerController);
-        this.player.on('playerHurt', this.playerHurt, this);
-        this.player.on('gameOver', this.gameOver, this);
+        if (this.player) {
+            this.playerScript = this.player.getComponent(PlayerController);
+            this.player.on('playerHurt', this.playerHurt, this);
+            this.player.on('gameOver', this.gameOver, this);
+        }
         this.scoreLabel = this.scoreUI.getComponent(Label);
         this.scoreLabel.string = 'Score : ' + this.score;
         this.strengthLabel = this.strengthUI.getComponent(Label);
@@ -91,6 +93,13 @@ export class GameManager extends Component {
         this.trophyUI.active = false;
         this.gameoverUI.active = false;
         this.runtimeUI.active = false;
+    }
+
+    onDisable() {
+        if (this.player) {
+            this.player.off('playerHurt', this.playerHurt, this);
+            this.player.off('gameOver', this.gameOver, this);
+        }
     }
 
     initial() {
@@ -140,9 +149,9 @@ export class GameManager extends Component {
         this.playerScript.initial();
     }
 
-    public gameOver() {
+    gameOver() {
         //do somthing
-        console.log('gameover');
+        //console.log('gameover');
         this.trophyUI.active = false;
         this.gameoverUI.active = true;
         this.runtimeUI.active = false;
@@ -150,7 +159,7 @@ export class GameManager extends Component {
         this.gameoverUIHidden.string = '' + this.highestHiddenScore;
     }
 
-    public addScore() {
+    addScore() {
         this.score++;
         this.scoreLabel.string = 'Score : ' + this.score;
         this.hiddenScore++;
@@ -170,17 +179,13 @@ export class GameManager extends Component {
         }
     }
 
-    public playerHurt() {
-        console.log('nice');
-        //console.log(this.bloodUI);
-        log(this.node.name);
-        log(this.bloodUI);
+    playerHurt() {
         this.bloodUI.color = math.color(255, 255, 255, 255);
         this.hiddenScore = 0;
         //this.playerScript.setAuraGrade(1);
     }
 
-    public pickTrophy(name: string) {
+    pickTrophy(name: string) {
         this.killAllMonster(name);
         this.playerScript.state = State.Invincible;
         this.playerScript.resetKey();

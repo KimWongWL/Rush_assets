@@ -7,16 +7,32 @@ const { ccclass, property } = _decorator;
 export class Sword extends Component {
 
     col: BoxCollider2D;
-    public attackPoint: number = 0;
+    attackPoint: number = 0;
     hitList: string[] = [];
     slashAudio: AudioSource;
+    player: Node;
 
     onLoad() {
         this.col = this.node.getComponent(BoxCollider2D);
         this.slashAudio = this.node.getComponent(AudioSource);
+        this.player = this.node.getParent();
 
+        if (this.player) {
+            this.player.on('resetSwordHitList', this.resetHitList, this);
+            this.player.on('setSwordAttkPt', this.setAttkPt, this);
+        }
         if (this.col) {
             this.col.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+        }
+    }
+
+    onDestroy() {
+        if (this.col) {
+            this.col.off(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+        }
+        if (this.player) {
+            this.player.off('resetSwordHitList', this.resetHitList, this);
+            this.player.off('setSwordAttkPt', this.setAttkPt, this);
         }
     }
 
@@ -29,14 +45,12 @@ export class Sword extends Component {
         }
     }
 
-    onDestroy() {
-        if (this.col) {
-            this.col.off(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
-        }
+    resetHitList() {
+        this.hitList = [];
     }
 
-    public resetHitList() {
-        this.hitList = [];
+    setAttkPt(newAP) {
+        this.attackPoint = newAP;
     }
 
     onBeginContact(self, object, contact: IPhysics2DContact | null) {

@@ -12,10 +12,6 @@ export class Trophy extends Component {
 
         this.gm = find('Canvas/Game manager').getComponent(GameManager);
         this.col = this.node.getComponent(BoxCollider2D);
-
-        if (this.col) {
-            this.col.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
-        }
     }
 
     onEnable() {

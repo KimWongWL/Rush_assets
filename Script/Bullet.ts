@@ -17,7 +17,6 @@ export class Bullet extends Component {
     speed = 30;
 
     onLoad() {
-
         this.bullet = this.node.getComponent(CircleCollider2D);
         //this.firePosnOff = v2(-this.node.getComponent(UITransform).contentSize.x * this.node.scale.x / 2, 0);
         this.rig = this.node.getComponent(RigidBody2D);
@@ -53,8 +52,16 @@ export class Bullet extends Component {
     }
 
     selfDestory() {
+        //seperate inactive and the listener setting
         this.node.active = false;
         //this.unschedule(this.selfDestory());
+        //this.rig.enabledContactListener = false;
+        //if (this.bullet) {
+        //    this.bullet.off(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+        //}
+    }
+
+    onDisable() {
         this.rig.enabledContactListener = false;
         if (this.bullet) {
             this.bullet.off(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);

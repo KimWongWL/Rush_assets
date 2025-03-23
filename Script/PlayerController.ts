@@ -1,7 +1,7 @@
 import { _decorator, Component, Input, input, Sprite, AudioSource, ProgressBar, EventKeyboard, KeyCode, v2, v3, RigidBody2D, find, Animation, BoxCollider2D, CircleCollider2D, PhysicsSystem2D, Size, ERaycast2DType, Prefab, ParticleSystem2D, Node, math, UITransform, EventMouse, BoxCollider } from 'cc';
 //import { GameManager } from './GameManager';
 import { Door } from './Door';
-import { Sword } from './Sword';
+//import { Sword } from './Sword';
 const { ccclass, property } = _decorator;
 
 export const enum  State {
@@ -33,7 +33,7 @@ export class PlayerController extends Component {
 
     //sword
     sword: Node;
-    swordScript: Sword;
+    //swordScript: Sword;
     aura: ParticleSystem2D;
     slash: Animation = null;
     swordCol: BoxCollider2D;
@@ -90,7 +90,7 @@ export class PlayerController extends Component {
         this.playerWidth = this.node.getComponent(UITransform).contentSize.x;
         //this.gm = find('Canvas/Game manager').getComponent(GameManager);
         this.sword = this.node.getChildByName('Sword');
-        this.swordScript = this.sword.getComponent(Sword);
+        //this.swordScript = this.sword.getComponent(Sword);
         this.slash = this.sword.getComponent(Animation);
         this.swordCol = this.sword.getComponent(BoxCollider2D);
         this.aura = this.sword.getChildByName('Aura').getComponent(ParticleSystem2D);
@@ -161,7 +161,8 @@ export class PlayerController extends Component {
 
     public setAttackPoint(newAP : number) {
         this.attackPoint = newAP;
-        this.swordScript.attackPoint = this.attackPoint;
+        //this.swordScript.attackPoint = this.attackPoint;
+        this.node.emit('setSwordAttkPt',newAP);
     }
 
     public setAttackRange(newRange: number) {
@@ -189,7 +190,8 @@ export class PlayerController extends Component {
         this.jump = false;
         this.swordCol.enabled = true;
         this.intervalTimer = 0;
-        this.swordScript.resetHitList();
+        //this.swordScript.resetHitList();
+        this.node.emit('resetSwordHitList');
         //console.log(this.combo);
         if (this.combo) {
             this.combo = false;
@@ -424,7 +426,6 @@ export class PlayerController extends Component {
         this.hp--;
         this.setAuraGrade(1);
         //this.gm.playerHurt();
-        console.log('player hurt');
         this.node.emit('playerHurt');
         for (let i = this.maxHP - 1; i >= 0; i--) {
             if (this.hpUI[i].enabled == true) {
