@@ -63,8 +63,9 @@ export class Door extends Component {
     }
 
     onBeginContact(self, object, contact: IPhysics2DContact | null) {
-        //collide to head //group = 2 to the power of index....
+        //group = 2 to the power of index....
         //console.log(object.node.name + ' ' + object.group + ' ' + object.tag);
+        //head
         if (object.group == this.power(2, 5)) {
             if (object.tag == 0) {
                 //falling state

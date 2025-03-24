@@ -166,8 +166,11 @@ export class PlayerController extends Component {
     }
 
     public setAttackRange(newRange: number) {
+        if (newRange > 2.1) {
+            return;
+        }
         this.attackRange = newRange;
-        this.sword.scale = v3(newRange * this.direction, this.sword.scale.y, this.sword.scale.z);
+        this.sword.scale = v3(this.direction, newRange, this.sword.scale.z);
     }
 
     public setAuraGrade(grade: number) {
@@ -179,10 +182,11 @@ export class PlayerController extends Component {
         }
         this.aura.totalParticles = 10 * this.power(1.5, grade);
         this.aura.speed = 25 + 5 * grade;
+        this.aura.startSize = 10 + 5 * grade;
     }
 
     attack() {
-        if (this.state == State.Attacking || this.intervalTimer < this.attackInterval) {
+        if (this.state == State.Attacking || this.state == State.Rolling || this.intervalTimer < this.attackInterval) {
             return;
         }
         this.state = State.Attacking;
@@ -354,10 +358,6 @@ export class PlayerController extends Component {
     }
 
     fall() {
-        this.headCollider.tag = 0;  // will set back when fall end
-        this.footCollider.tag = 0;  // will set back when fall end
-        let canFall = false;
-
         for (let j = 0; j < 3; j++) {
             //find oneway wall
             let startPosn = this.node.getWorldPosition().clone().add(v3(this.playerWidth / 1.9 * (j - 1), 4, 0));
@@ -406,6 +406,9 @@ export class PlayerController extends Component {
                     //}
                 }
                 if (canFall) {
+                    this.headCollider.tag = 0;  // will set back when fall end
+                    this.footCollider.tag = 0;  // will set back when fall end
+
                     this.scheduleOnce(this.resetHeadCollider, 0.25);
                 }
             }
@@ -490,7 +493,7 @@ export class PlayerController extends Component {
         //attack
         if (this.intervalTimer < this.attackInterval * 2.5) {
             this.intervalTimer += deltaTime;
-            if (this.intervalTimer >= this.attackInterval * 2.5 && this.combo) {
+            if (this.intervalTimer >= this.attackInterval * 2.5 && this.combo && this.state != State.Attacking) {
                 this.resetBlade();
             }
         }

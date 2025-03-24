@@ -4683,6 +4683,7 @@
     "strengthUI": {
       "__id__": 299
     },
+    "cheat": true,
     "_id": "82Ja2JPp9G4ICWSxaj2/Sp"
   },
   {
@@ -5080,7 +5081,7 @@
     },
     "_enabled": true,
     "__prefab": null,
-    "playOnLoad": false,
+    "playOnLoad": true,
     "_clips": [
       {
         "__uuid__": "d9a2ea8f-65e7-4e59-b9ff-7ccbd6b3265d",
@@ -5765,7 +5766,7 @@
         "__id__": 205
       }
     ],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 231
@@ -6031,8 +6032,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 225.68359375,
-      "height": 50.4
+      "width": 225.65440713205643,
+      "height": 50.400000000000006
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -6064,7 +6065,7 @@
     "_string": "Attack +10%",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 42,
+    "_actualFontSize": 51.66666666666667,
     "_fontSize": 40,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -6163,8 +6164,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 166.71875,
-      "height": 50.4
+      "width": 166.69717505670363,
+      "height": 50.400000000000006
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -6196,7 +6197,7 @@
     "_string": "Current : ",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 42,
+    "_actualFontSize": 51.66666666666667,
     "_fontSize": 40,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -6383,7 +6384,7 @@
     "_string": "Pick",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 21,
+    "_actualFontSize": 25.833333333333336,
     "_fontSize": 20,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -6852,7 +6853,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 246.7225864955357,
+      "width": 246.67704133064515,
       "height": 35.28
     },
     "_anchorPoint": {
@@ -6885,7 +6886,7 @@
     "_string": "Attack Speed +10%",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 29.400000000000002,
+    "_actualFontSize": 36.16666666666667,
     "_fontSize": 28,
     "_fontFamily": "Arial",
     "_lineHeight": 28,
@@ -6984,8 +6985,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 166.71875,
-      "height": 50.4
+      "width": 166.69717505670363,
+      "height": 50.400000000000006
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -7017,7 +7018,7 @@
     "_string": "Current : ",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 42,
+    "_actualFontSize": 51.66666666666667,
     "_fontSize": 40,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -7204,7 +7205,7 @@
     "_string": "Pick",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 21,
+    "_actualFontSize": 25.833333333333336,
     "_fontSize": 20,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -7898,7 +7899,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 240.48820858909968,
+      "width": 248.22169543850805,
       "height": 35.28
     },
     "_anchorPoint": {
@@ -7928,10 +7929,10 @@
       "b": 255,
       "a": 255
     },
-    "_string": "Attack Range+10%",
+    "_string": "Attack Range +10%",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 29.400000000000002,
+    "_actualFontSize": 36.16666666666667,
     "_fontSize": 28,
     "_fontFamily": "Arial",
     "_lineHeight": 28,
@@ -8030,8 +8031,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 166.71875,
-      "height": 50.4
+      "width": 166.69717505670363,
+      "height": 50.400000000000006
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -8063,7 +8064,7 @@
     "_string": "Current : ",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 42,
+    "_actualFontSize": 51.66666666666667,
     "_fontSize": 40,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -8250,7 +8251,7 @@
     "_string": "Pick",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 21,
+    "_actualFontSize": 25.833333333333336,
     "_fontSize": 20,
     "_fontFamily": "Arial",
     "_lineHeight": 40,

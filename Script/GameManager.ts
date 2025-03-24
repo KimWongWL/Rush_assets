@@ -15,6 +15,8 @@ export class GameManager extends Component {
     public scoreUI: Node;
     @property({ type: Node })
     public strengthUI: Node;
+    @property
+    public cheat = false;
 
     score: number = 0;
     hiddenScore = 0;
@@ -28,7 +30,7 @@ export class GameManager extends Component {
     areaBlock: BoxCollider2D[][] = [[], []];
     monsterList: Node[][][] = [[], []];
     playerScript: PlayerController;
-    scoreGrade: number[] = [10, 20, 40, 70, 100];
+    scoreGrade: number[] = [10, 20, 40, 70, 100, 150, 200, 270, 350, 450, 600];
     runtimeUI: Node;
     trophyUI: Node;
     trophyUILabels: Label[] = [];
@@ -60,7 +62,7 @@ export class GameManager extends Component {
         this.trophyUILabels[1] = this.trophyUI.getChildByName('AttackSpeed').getChildByName('Cur_Stat').getComponent(Label);
         this.trophyUILabels[2] = this.trophyUI.getChildByName('AttackRange').getChildByName('Cur_Stat').getComponent(Label);
         this.bloodUI = find('Canvas/Camera/blood border').getComponent(Sprite);
-        console.log(this.bloodUI);
+        //console.log(this.bloodUI);
         this.gamestartUI = find('Canvas/Camera/GamestartUI');
         this.gameoverUI = find('Canvas/Camera/GameoverUI');
         this.gameoverUIScore = find('Canvas/Camera/GameoverUI/Bg/Score/Record').getComponent(Label);
@@ -193,10 +195,11 @@ export class GameManager extends Component {
         this.runtimeUI.active = false;
         this.trophyUI.active = true;
         this.trophyUILabels[0].string = 'Current : ' + this.playerScript.attackPoint / this.playerDeftAttkStat[0] * 100 + '%';
-        console.log(this.playerScript.attackInterval + " " + this.playerDeftAttkStat[1]);
+        //console.log(this.playerScript.attackInterval + " " + this.playerDeftAttkStat[1]);
         let attkSpeed = Math.round(this.playerDeftAttkStat[1] / this.playerScript.attackInterval * 100);
         this.trophyUILabels[1].string = 'Current : ' + attkSpeed + '%';
-        this.trophyUILabels[2].string = 'Current : ' + this.playerScript.attackRange / this.playerDeftAttkStat[2] * 100 + '%';
+        let showRange = Math.floor(this.playerScript.attackRange / this.playerDeftAttkStat[2] * 100);
+        this.trophyUILabels[2].string = 'Current : ' + showRange + '%';
     }
 
     pick(event: Event, customEventData: string) {
@@ -216,6 +219,7 @@ export class GameManager extends Component {
                 break;
         }
         this.trophyUI.active = false;
+        this.runtimeUI.active = true;
         this.playerScript.state = State.Normal;
         this.player.setPosition(v3(0,0,0));
         if (this.area) {
@@ -329,6 +333,17 @@ export class GameManager extends Component {
             this.strength++;
             this.strengthLabel.string = 'MonsterStrength : ' + this.strength;
             this.strengthIncreaseTimer = 0;
+        }
+
+        if (this.cheat) {
+            //this.score += deltaTime * 20;
+            this.strength += deltaTime * 10;
+            this.strength = Math.ceil(this.strength);
+            this.strengthLabel.string = 'MonsterStrength : ' + this.strength;
+            this.playerScript.setAttackPoint(this.playerScript.attackPoint + this.playerDeftAttkStat[0] * 0.1);
+            this.playerScript.attackInterval = this.playerDeftAttkStat[1] / (this.playerDeftAttkStat[1] / this.playerScript.attackInterval + 0.1);
+            this.playerScript.setAttackRange(this.playerScript.attackRange + this.playerDeftAttkStat[2] * 0.1);
+            this.addScore();
         }
     }
 }
